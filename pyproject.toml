@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "feeluown-bilibili"
+version = "0.1.0"
+description = ""
+authors = ["Bruce Zhang <zttt183525594@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+feeluown = "*"
+aiohttp = { version = "*", extras = ["speedups"] }
+
+[tool.poetry.dev-dependencies]
+pytest = "*"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
