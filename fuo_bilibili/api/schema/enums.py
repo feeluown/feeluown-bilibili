@@ -1,6 +1,65 @@
 from enum import Enum
 
 
+class SearchType(Enum):
+    """
+    搜索目标类型
+    """
+    VIDEO = 'video'  # 视频
+    BANGUMI = 'media_bangumi'  # 番剧
+    MEDIA = 'media_ft'  # 影视
+    LIVE = 'live'  # 直播间/主播
+    LIVE_ROOM = 'live_room'  # 直播间
+    LIVE_USER = 'live_user'  # 主播
+    ARTICLE = 'article'  # 专栏文章
+    TOPIC = 'topic'  # 话题
+    BILI_USER = 'bili_user'  # 用户
+    PHOTO = 'photo'  # 相册
+
+
+class UserType(Enum):
+    """
+    用户分类
+    """
+    ALL = 0
+    UP = 1  # UP主
+    NORMAL = 2
+    VERIFIED = 3  # 认证用户
+
+
+class VideoDurationType(Enum):
+    """
+    视频时长筛选
+    """
+    ALL = 0
+    LT10 = 1
+    GT10LT30 = 2
+    GT30LT60 = 3
+    GT60 = 4
+
+
+class SearchOrderType(Enum):
+    """
+    搜索结果排序方式
+    """
+    # 视频、专栏、相册
+    TOTALRANK = 'totalrank'  # 综合排序
+    CLICK = 'click'  # 最多点击
+    PUBDATE = 'pubdate'  # 最新发布
+    DM = 'dm'  # 最多弹幕
+    STOW = 'stow'  # 最多收藏
+    SCORES = 'scores'  # 最多评论
+    # 相册
+    ATTENTION = 'attention'  # 最多喜欢
+    # 直播间
+    ONLINE = 'online'  # 人气直播
+    LIVE_TIME = 'live_time'  # 最新开播
+    # 用户
+    USER_DEFAULT = '0'  # 默认排序
+    FANS = 'fans'  # 粉丝数
+    LEVEL = 'level'  # 用户等级
+
+
 class VideoQualityNum(Enum):
     """
     视频清晰度

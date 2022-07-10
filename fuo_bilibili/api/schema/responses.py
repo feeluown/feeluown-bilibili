@@ -1,9 +1,9 @@
 from datetime import datetime, timedelta
-from typing import Any, List
+from typing import Any, List, Union
 
 from pydantic import BaseModel, validator, Field
 
-from fuo_bilibili.api.schema.enums import VideoQualityNum, CodecId, VideoCopyright, VideoState, VideoFrom
+from fuo_bilibili.api.schema.enums import VideoQualityNum, CodecId, VideoCopyright, VideoState, VideoFrom, SearchType
 
 
 class BaseResponse(BaseModel):
@@ -17,6 +17,55 @@ class Dimension(BaseModel):
     width: int
     height: int
     rotate: int
+
+
+class SearchResultVideo(BaseModel):
+    type: SearchType
+    id: int  # av号
+    author: str  # UPer
+    mid: int  # UID
+    typeid: int  # 分区id
+    typename: str  # 分区名称
+    arcurl: str
+    aid: int
+    bvid: str  # bv号
+    title: str  # 标题
+    description: str  # 简介
+    arcrank: str
+    pic: str  # 视频封面
+    play: int  # 播放量
+    video_review: int  # 弹幕量
+    favorites: int  # 收藏量
+    tag: str  # 视频标签
+    review: int  # 评论数
+    pubdate: datetime
+    senddate: datetime
+    duration: timedelta
+    badgepay: bool
+    hit_columns: List[str]
+    view_type: str
+    is_pay: bool
+    is_union_video: bool
+    rank_score: int
+
+
+class SearchResponse(BaseResponse):
+    class SearchResponseData(BaseModel):
+        seid: int
+        page: int
+        pagesize: int  # 每页条数
+        numResults: int  # 总数
+        numPages: int  # 总页数
+        suggest_keyword: str
+        rqt_type: str
+        cost_time: dict
+        exp_list: dict = None
+        egg_hit: int
+        pageinfo: dict = None
+        result: Union[List[Union[SearchResultVideo]], dict]  # 搜索结果 todo: obj
+        show_column: int
+
+    data: SearchResponseData = None
 
 
 class VideoInfoResponse(BaseResponse):
@@ -164,7 +213,7 @@ class PlayUrlResponse(BaseResponse):
             class DashItem(BaseModel):
                 id: int  # 音视频清晰度代码
                 base_url: str  # 默认视频/音频流
-                backup_url: List[str]  # 备用视频/音频流
+                backup_url: List[str] = None  # 备用视频/音频流
                 bandwidth: int
                 mime_type: str
                 codecs: str

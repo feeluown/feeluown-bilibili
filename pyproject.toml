@@ -3,15 +3,20 @@ name = "feeluown-bilibili"
 version = "0.1.0"
 description = ""
 authors = ["Bruce Zhang <zttt183525594@gmail.com>"]
+packages = [{ include = "fuo_bilibili" }]
 
 [tool.poetry.dependencies]
 python = "^3.10"
 feeluown = "*"
-aiohttp = { version = "*", extras = ["speedups"] }
+cachetools = "*"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
+PyQt5 = "*"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.plugins."fuo.plugins_v1"]
+"bilibili" = "fuo_bilibili"
