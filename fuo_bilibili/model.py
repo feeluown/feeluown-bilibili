@@ -1,7 +1,7 @@
 from typing import List, Union
 
 from feeluown.library import SongModel, BriefArtistModel, SongProtocol
-from feeluown.models import SearchModel
+from feeluown.models import SearchModel, ModelExistence
 
 from fuo_bilibili import __identifier__
 from fuo_bilibili.api import SearchType
@@ -40,7 +40,8 @@ class BSongModel(SongModel):
                 identifier=result.owner.mid,
                 name=result.owner.name,
             )],
-            duration=result.duration.total_seconds() * 1000
+            duration=result.duration.total_seconds() * 1000,
+            exists=ModelExistence.yes
         )
 
 
