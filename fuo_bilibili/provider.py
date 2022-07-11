@@ -1,8 +1,7 @@
-import asyncio
 from typing import List, Optional
 
-from feeluown.library import AbstractProvider, ProviderV2, SongProtocol, ProviderFlags as Pf, BriefSongModel
-from feeluown.media import Quality, Media, MediaType
+from feeluown.library import AbstractProvider, ProviderV2, ProviderFlags as Pf
+from feeluown.media import Quality, Media
 from feeluown.models import SearchType as FuoSearchType, ModelType
 
 from fuo_bilibili import __identifier__, __alias__
@@ -63,8 +62,9 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
             cid=info.data.cid,
             fnval=VideoFnval.DASH
         ))
-        print(len(response.data.dash.audio), response.data.dash.audio[0].base_url)
-        return Media(response.data.dash.audio[0].base_url, bitrate=320, format='mp3')
+        print(len(response.data.dash.audio))
+        return Media(response.data.dash.audio[0].base_url, bitrate=320, format='mp3',
+                     http_headers={'Referer': 'https://www.bilibili.com/'})
 
     @property
     def identifier(self):
