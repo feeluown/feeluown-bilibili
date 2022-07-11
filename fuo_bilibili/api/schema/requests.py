@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from fuo_bilibili.api.schema.enums import VideoQualityNum, VideoFnval, SearchType, SearchOrderType, UserType, \
     VideoDurationType
@@ -7,6 +7,18 @@ from fuo_bilibili.api.schema.enums import VideoQualityNum, VideoFnval, SearchTyp
 class BaseRequest(BaseModel):
     def __hash__(self):
         return hash(self.json())
+
+
+class PasswordLoginRequest(BaseRequest):
+    captchaType: int = 6
+    username: str
+    password: str  # 加密后密码
+    keep: bool = True
+    token: str
+    # geetest
+    challenge: str
+    validate_: str = Field(alias='validate')
+    seccode: str
 
 
 class SearchRequest(BaseRequest):

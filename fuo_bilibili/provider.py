@@ -1,5 +1,6 @@
 from typing import List, Optional
 
+from feeluown.excs import NoUserLoggedIn
 from feeluown.library import AbstractProvider, ProviderV2, ProviderFlags as Pf
 from feeluown.media import Quality, Media
 from feeluown.models import SearchType as FuoSearchType, ModelType
@@ -8,6 +9,8 @@ from fuo_bilibili import __identifier__, __alias__
 from fuo_bilibili.api import BilibiliApi, SearchRequest, SearchType as BilibiliSearchType, VideoInfoRequest, \
     PlayUrlRequest, VideoQualityNum
 from fuo_bilibili.api.schema.enums import VideoFnval
+from fuo_bilibili.api.schema.requests import PasswordLoginRequest
+from fuo_bilibili.api.schema.responses import RequestCaptchaResponse, RequestLoginKeyResponse, PasswordLoginResponse
 from fuo_bilibili.model import BSearchModel, BSongModel
 
 SEARCH_TYPE_MAP = {
@@ -29,12 +32,35 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
     def __init__(self):
         super(BilibiliProvider, self).__init__()
         self._api = BilibiliApi()
+        self._user = None
 
     def _format_search_request(self, keyword, type_) -> SearchRequest:
         btype = SEARCH_TYPE_MAP.get(type_)
         if btype is None:
             raise NotImplementedError
         return SearchRequest(search_type=btype, keyword=keyword)
+
+    def request_captcha(self) -> RequestCaptchaResponse.RequestCaptchaResponseData:
+        res = self._api.request_captcha()
+        assert hasattr(res.data, 'geetest') and res.data.geetest is not None
+        return res.data
+
+    def request_key(self) -> RequestLoginKeyResponse:
+        return self._api.request_login_key()
+
+    def auth(self, user):
+        pass
+
+    def has_current_user(self) -> bool:
+        return self._user is not None
+
+    def get_current_user(self):
+        if self._user is None:
+            raise NoUserLoggedIn
+        return self._user
+
+    def password_login(self, request: PasswordLoginRequest) -> PasswordLoginResponse:
+        return self._api.password_login(request)
 
     def search(self, keyword, type_, *args, **kwargs) -> Optional[BSearchModel]:
         request = self._format_search_request(keyword, type_)
@@ -62,7 +88,6 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
             cid=info.data.cid,
             fnval=VideoFnval.DASH
         ))
-        print(len(response.data.dash.audio))
         return Media(response.data.dash.audio[0].base_url, bitrate=320, format='mp3',
                      http_headers={'Referer': 'https://www.bilibili.com/'})
 
@@ -73,3 +98,6 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
     @property
     def name(self):
         return __alias__
+
+    def close(self):
+        self._api.close()

@@ -49,6 +49,41 @@ class SearchResultVideo(BaseModel):
     rank_score: int
 
 
+class RequestCaptchaResponse(BaseResponse):
+    class RequestCaptchaResponseData(BaseModel):
+        class Geetest(BaseModel):
+            gt: str
+            challenge: str
+
+        geetest: Geetest
+        tencent: dict
+        token: str
+        type: str
+
+    data: RequestCaptchaResponseData
+
+
+class RequestLoginKeyResponse(BaseModel):
+    hash: str
+    key: str
+
+
+class PasswordLoginResponse(BaseResponse):
+    class PasswordLoginResponseData(BaseModel):
+        # 未登录
+        redirectUrl: str = None
+        # 已登录
+        isLogin: bool = None
+        goUrl: str = None
+        # 要求验证手机号或邮箱
+        mid: int = None
+        # 隐私信息包含星号
+        tel: str = None
+        email: str = None
+
+    data: PasswordLoginResponseData = None
+
+
 class SearchResponse(BaseResponse):
     class SearchResponseData(BaseModel):
         seid: int

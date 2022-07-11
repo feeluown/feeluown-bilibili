@@ -4,12 +4,14 @@ version = "0.1.0"
 description = ""
 authors = ["Bruce Zhang <zttt183525594@gmail.com>"]
 packages = [{ include = "fuo_bilibili" }]
+include = ["fuo_bilibili/assets/icon.svg"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
 feeluown = "*"
 cachetools = "*"
 beautifulsoup4 = "*"
+pycryptodomex = "*"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
