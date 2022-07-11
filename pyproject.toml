@@ -9,6 +9,7 @@ packages = [{ include = "fuo_bilibili" }]
 python = "^3.10"
 feeluown = "*"
 cachetools = "*"
+beautifulsoup4 = "*"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
