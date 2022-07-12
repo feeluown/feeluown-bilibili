@@ -3,7 +3,8 @@ import base64
 import logging
 from pathlib import Path
 
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtCore import Qt, pyqtSignal, QUrl
+from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtWidgets import QDialog, QLineEdit, QVBoxLayout, QPushButton, QLabel
 from feeluown.app.gui_app import GuiApp
 from feeluown.gui import ProviderUiManager
@@ -119,7 +120,7 @@ class BLoginDialog(QDialog):
     def _auth_back(self, validate: str, seccode: str, challenge: str, token: str):
         key_data = self._provider.request_key()
         encrypted_pw = self._get_encrypted_password(key_data)
-        self._provider.password_login(PasswordLoginRequest(
+        resp = self._provider.password_login(PasswordLoginRequest(
             username=self.username_input.text(),
             password=encrypted_pw,
             token=token,
@@ -127,6 +128,10 @@ class BLoginDialog(QDialog):
             validate=validate,
             seccode=seccode
         ))
+        if resp.data.status == 2:
+            # 需要验证手机号
+            print(resp.data.message)
+            QDesktopServices.openUrl(QUrl(resp.data.url))
         self.close()
 
     def _get_encrypted_password(self, key_data: RequestLoginKeyResponse):

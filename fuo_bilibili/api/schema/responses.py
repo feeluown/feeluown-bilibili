@@ -70,16 +70,9 @@ class RequestLoginKeyResponse(BaseModel):
 
 class PasswordLoginResponse(BaseResponse):
     class PasswordLoginResponseData(BaseModel):
-        # 未登录
-        redirectUrl: str = None
-        # 已登录
-        isLogin: bool = None
-        goUrl: str = None
-        # 要求验证手机号或邮箱
-        mid: int = None
-        # 隐私信息包含星号
-        tel: str = None
-        email: str = None
+        status: int = None
+        message: str = None
+        url: str = None
 
     data: PasswordLoginResponseData = None
 
