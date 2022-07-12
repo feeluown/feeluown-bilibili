@@ -10,7 +10,7 @@ class BaseRequest(BaseModel):
 
 
 class PasswordLoginRequest(BaseRequest):
-    captchaType: int = 6
+    source: str = 'main_h5'
     username: str
     password: str  # 加密后密码
     keep: bool = True

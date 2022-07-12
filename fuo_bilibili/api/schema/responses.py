@@ -60,7 +60,7 @@ class RequestCaptchaResponse(BaseResponse):
         token: str
         type: str
 
-    data: RequestCaptchaResponseData
+    data: RequestCaptchaResponseData = None
 
 
 class RequestLoginKeyResponse(BaseModel):

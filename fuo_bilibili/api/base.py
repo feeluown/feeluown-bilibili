@@ -37,11 +37,10 @@ class BaseMixin:
         """
         账号密码登录
         """
-        url = f'{self.PASSPORT_BASE}/web/login/v2'
+        url = f'{self.PASSPORT_BASE}/x/passport-login/web/login'
         return self.post(url, request, PasswordLoginResponse, is_form=True,
                          headers={
-                             'user-agent': 'Mozilla/5.0 FeelUOwn/3.8',
-                             'host': 'passport.bilibili.comm',
+                             'user-agent': 'Mozilla/5.0',
                              'referer': 'https://passport.bilibili.com/login',
                              'content-type': 'application/x-www-form-urlencoded'
                          })

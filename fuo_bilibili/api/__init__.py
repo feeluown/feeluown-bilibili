@@ -46,22 +46,22 @@ class BilibiliApi(BaseMixin, VideoMixin):
     def post(self, url: str, param: Optional[BaseRequest], clazz: Type[BaseResponse], is_form=False, **kwargs)\
             -> BaseResponse:
         if param is None:
-            request = None
             r = self._session.post(url, **kwargs)
         else:
             request = json.loads(param.json(exclude_none=True, by_alias=True))
+            print(request)
             if is_form:
                 r = self._session.post(url, data=request, **kwargs)
             else:
                 r = self._session.post(url, json=request, **kwargs)
         if r.status_code != 200:
-            print(r.text)
-            raise RuntimeError('http not 200')
+            print(r.request.headers, r.text)
+            raise RuntimeError(f'http not 200: {r.status_code}')
         response_str = r.text
         print(json.loads(param.json(exclude_none=True, by_alias=True)), response_str)
         res = clazz.parse_raw(response_str)
         if res.code != 0:
-            raise RuntimeError(f'code not ok: {res.message}')
+            raise RuntimeError(f'code not ok: {res.code} {res.message}')
         return res
 
     def close(self):

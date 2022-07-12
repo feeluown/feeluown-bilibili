@@ -101,3 +101,6 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
 
     def close(self):
         self._api.close()
+
+    def __del__(self):
+        self.close()

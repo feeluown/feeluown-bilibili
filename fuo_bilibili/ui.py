@@ -30,11 +30,10 @@ class BAuthDialog(QDialog):
         self.gt_input = QLineEdit(self)
         self.challenge_input = QLineEdit(self)
         self.gt_input.setReadOnly(True)
+        self.gt_input.setVisible(False)
         self.challenge_input.setReadOnly(True)
-        self.auth_link = self._create_link_label(
-            'https://kuresaru.github.io/geetest-validator',
-            '将上方参数填入验证器'
-        )
+        self.challenge_input.setVisible(False)
+        self.auth_link = self._create_link_label('#', '正在获取验证链接...')
         self.validate_input = QLineEdit(self)
         self.validate_input.setPlaceholderText('validate')
         self.seccode_input = QLineEdit(self)
@@ -82,6 +81,7 @@ class BAuthDialog(QDialog):
         self.gt_input.setText(geetest.gt)
         self.challenge_input.setText(geetest.challenge)
         self._token = data.token
+        self.auth_link.setText(f'<a href="https://brucezhang1993.github.io/fuo-geetest-validator/?gt={geetest.gt}&challenge={geetest.challenge}">点击链接完成验证</a>')
 
 
 class BLoginDialog(QDialog):
