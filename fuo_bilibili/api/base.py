@@ -17,6 +17,9 @@ class BaseMixin:
     def post(self, url: str, param: Optional[BaseRequest], clazz: Type[BaseResponse], is_form=False, **kwargs) -> Any:
         pass
 
+    def _dump_cookie_to_file(self):
+        pass
+
     def search(self, request: SearchRequest) -> SearchResponse:
         url = f'{self.API_BASE}/search/type'
         return self.get(url, request, SearchResponse)
@@ -38,9 +41,11 @@ class BaseMixin:
         账号密码登录
         """
         url = f'{self.PASSPORT_BASE}/x/passport-login/web/login'
-        return self.post(url, request, PasswordLoginResponse, is_form=True,
+        resp = self.post(url, request, PasswordLoginResponse, is_form=True,
                          headers={
                              'user-agent': 'Mozilla/5.0',
                              'referer': 'https://passport.bilibili.com/login',
                              'content-type': 'application/x-www-form-urlencoded'
                          })
+        self._dump_cookie_to_file()
+        return resp
