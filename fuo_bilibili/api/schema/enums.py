@@ -27,6 +27,15 @@ class UserType(Enum):
     VERIFIED = 3  # 认证用户
 
 
+class VipType(Enum):
+    """
+    会员类型
+    """
+    NO = 0
+    MONTH = 1  # 月度大会员
+    YEAR = 2  # 年度大会员或以上
+
+
 class VideoDurationType(Enum):
     """
     视频时长筛选

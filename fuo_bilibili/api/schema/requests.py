@@ -9,16 +9,33 @@ class BaseRequest(BaseModel):
         return hash(self.json())
 
 
-class PasswordLoginRequest(BaseRequest):
+class GeetestBase(BaseModel):
+    token: str
+    challenge: str
+    validate_: str = Field(alias='validate')
+    seccode: str
+
+
+class SendSmsCodeRequest(BaseRequest, GeetestBase):
+    tel: str  # 手机号（不包含国家代码）
+    cid: str = '+86'  # 国家代码
+    source: str = 'main_web'
+
+
+class SmsCodeLoginRequest(BaseRequest):
+    tel: str  # 手机号（不包含国家代码）
+    cid: str = '+86'  # 国家代码
+    code: str  # 验证码
+    source: str = 'main_web'
+    captcha_key: str
+    keep: bool = True
+
+
+class PasswordLoginRequest(BaseRequest, GeetestBase):
     source: str = 'main_h5'
     username: str
     password: str  # 加密后密码
     keep: bool = True
-    token: str
-    # geetest
-    challenge: str
-    validate_: str = Field(alias='validate')
-    seccode: str
 
 
 class SearchRequest(BaseRequest):

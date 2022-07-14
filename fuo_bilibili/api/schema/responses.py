@@ -3,7 +3,8 @@ from typing import Any, List, Union
 
 from pydantic import BaseModel, validator, Field
 
-from fuo_bilibili.api.schema.enums import VideoQualityNum, CodecId, VideoCopyright, VideoState, VideoFrom, SearchType
+from fuo_bilibili.api.schema.enums import VideoQualityNum, CodecId, VideoCopyright, VideoState, VideoFrom, SearchType, \
+    VipType
 
 
 class BaseResponse(BaseModel):
@@ -68,6 +69,13 @@ class RequestLoginKeyResponse(BaseModel):
     key: str
 
 
+class SendSmsCodeResponse(BaseResponse):
+    class SendSmsCodeResponseData(BaseModel):
+        captcha_key: str
+
+    data: SendSmsCodeResponseData = None
+
+
 class PasswordLoginResponse(BaseResponse):
     class PasswordLoginResponseData(BaseModel):
         status: int = None
@@ -75,6 +83,52 @@ class PasswordLoginResponse(BaseResponse):
         url: str = None
 
     data: PasswordLoginResponseData = None
+
+
+class SmsCodeLoginResponse(BaseResponse):
+    class SmsCodeLoginResponseData(BaseModel):
+        url: str
+
+    data: SmsCodeLoginResponseData = None
+
+
+class NavInfoResponse(BaseResponse):
+    class NavInfoResponseData(BaseModel):
+        class LevelInfo(BaseModel):
+            current_level: int
+            current_min: int
+            current_exp: int
+            next_exp: str
+
+        class VipLabel(BaseModel):
+            text: str
+
+        class Wallet(BaseModel):
+            bcoin_balance: int  # B币
+            coupon_balance: int  # 赠送B币数
+
+        isLogin: bool
+        email_verified: bool
+        face: str
+        mid: int  # UID
+        mobile_verified: bool
+        money: int  # 硬币数
+        moral: int  # 节操值
+        uname: str
+        vipDueDate: datetime
+        vipStatus: bool
+        vipType: VipType
+        vip_pay_type: bool
+        wallet: Wallet
+        level_info: LevelInfo
+        vip_label: VipLabel
+
+        @classmethod
+        @validator('vipDueDate')
+        def convert_ms(cls, v):
+            return v / 1000
+
+    data: NavInfoResponseData = None
 
 
 class SearchResponse(BaseResponse):

@@ -1,7 +1,7 @@
 from typing import List, Optional
 
 from feeluown.excs import NoUserLoggedIn
-from feeluown.library import AbstractProvider, ProviderV2, ProviderFlags as Pf
+from feeluown.library import AbstractProvider, ProviderV2, ProviderFlags as Pf, UserModel
 from feeluown.media import Quality, Media
 from feeluown.models import SearchType as FuoSearchType, ModelType
 
@@ -9,8 +9,9 @@ from fuo_bilibili import __identifier__, __alias__
 from fuo_bilibili.api import BilibiliApi, SearchRequest, SearchType as BilibiliSearchType, VideoInfoRequest, \
     PlayUrlRequest, VideoQualityNum
 from fuo_bilibili.api.schema.enums import VideoFnval
-from fuo_bilibili.api.schema.requests import PasswordLoginRequest
-from fuo_bilibili.api.schema.responses import RequestCaptchaResponse, RequestLoginKeyResponse, PasswordLoginResponse
+from fuo_bilibili.api.schema.requests import PasswordLoginRequest, SendSmsCodeRequest, SmsCodeLoginRequest
+from fuo_bilibili.api.schema.responses import RequestCaptchaResponse, RequestLoginKeyResponse, PasswordLoginResponse, \
+    SendSmsCodeResponse, SmsCodeLoginResponse, NavInfoResponse
 from fuo_bilibili.model import BSearchModel, BSongModel
 
 SEARCH_TYPE_MAP = {
@@ -48,8 +49,13 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
     def request_key(self) -> RequestLoginKeyResponse:
         return self._api.request_login_key()
 
-    def auth(self, user):
-        pass
+    def cookie_check(self):
+        return self._api.cookie_check()
+
+    def auth(self, _):
+        self._api.load_cookies()
+        self._user = self.user_info()
+        return self._user
 
     def has_current_user(self) -> bool:
         return self._user is not None
@@ -57,10 +63,26 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
     def get_current_user(self):
         if self._user is None:
             raise NoUserLoggedIn
-        return self._user
+
+    def user_info(self) -> UserModel:
+        data: NavInfoResponse.NavInfoResponseData = self._api.nav_info().data
+        print(data)
+        user = UserModel(
+            source=__identifier__,
+            identifier=str(data.mid),
+            name=data.uname,
+            avatar_url=data.face
+        )
+        return user
+
+    def sms_send_code(self, request: SendSmsCodeRequest) -> SendSmsCodeResponse:
+        return self._api.send_sms_code(request)
 
     def password_login(self, request: PasswordLoginRequest) -> PasswordLoginResponse:
         return self._api.password_login(request)
+
+    def sms_code_login(self, request: SmsCodeLoginRequest) -> SmsCodeLoginResponse:
+        return self._api.sms_code_login(request)
 
     def search(self, keyword, type_, *args, **kwargs) -> Optional[BSearchModel]:
         request = self._format_search_request(keyword, type_)
