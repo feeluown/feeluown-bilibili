@@ -1,7 +1,8 @@
 from typing import List, Optional
 
 from feeluown.excs import NoUserLoggedIn
-from feeluown.library import AbstractProvider, ProviderV2, ProviderFlags as Pf, UserModel
+from feeluown.library import AbstractProvider, ProviderV2, ProviderFlags as Pf, UserModel, VideoModel
+from feeluown.library.model_protocol import VideoProtocol
 from feeluown.media import Quality, Media
 from feeluown.models import SearchType as FuoSearchType, ModelType
 
@@ -28,6 +29,7 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
         name: str = __alias__
         flags: dict = {
             ModelType.song: (Pf.model_v2 | Pf.get | Pf.multi_quality | Pf.lyric | Pf.mv),
+            ModelType.video: (Pf.model_v2 | Pf.multi_quality | Pf.get)
         }
 
     def __init__(self):
@@ -66,7 +68,6 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
 
     def user_info(self) -> UserModel:
         data: NavInfoResponse.NavInfoResponseData = self._api.nav_info().data
-        print(data)
         user = UserModel(
             source=__identifier__,
             identifier=str(data.mid),
@@ -96,8 +97,30 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
     def song_get_lyric(self, song) -> None:
         return None
 
-    def song_get_mv(self, song) -> None:
-        return None
+    def video_list_quality(self, video) -> List[Quality.Video]:
+        return [Quality.Video.hd]
+
+    def song_get_mv(self, song) -> Optional[VideoModel]:
+        return VideoModel(
+            source=__identifier__,
+            identifier=song.identifier,
+            title=song.title,
+            artists=song.artists,
+            duration=song.duration,
+            cover=''
+        )
+
+    def video_get_media(self, video, quality) -> Optional[Media]:
+        info = self._api.video_get_info(VideoInfoRequest(bvid=video.identifier))
+        response = self._api.video_get_url(PlayUrlRequest(
+            bvid=video.identifier,
+            qn=VideoQualityNum.q1080p60,
+            cid=info.data.cid,
+            fnval=VideoFnval.FLV
+        ))
+        print(len(response.data.durl))
+        return Media(response.data.durl[0].url, format='flv',
+                     http_headers={'Referer': 'https://www.bilibili.com/'})
 
     def song_list_quality(self, song) -> List[Quality.Audio]:
         return [Quality.Audio.lq]
@@ -110,6 +133,7 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
             cid=info.data.cid,
             fnval=VideoFnval.DASH
         ))
+        print(len(response.data.dash.audio))
         return Media(response.data.dash.audio[0].base_url, bitrate=320, format='mp3',
                      http_headers={'Referer': 'https://www.bilibili.com/'})
 
