@@ -134,7 +134,7 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
             fnval=VideoFnval.DASH
         ))
         print(len(response.data.dash.audio))
-        return Media(response.data.dash.audio[0].base_url, bitrate=320, format='mp3', type_=MediaType.video,
+        return Media(response.data.dash.audio[0].base_url, type_=MediaType.video,
                      http_headers={'Referer': 'https://www.bilibili.com/'})
 
     @property
