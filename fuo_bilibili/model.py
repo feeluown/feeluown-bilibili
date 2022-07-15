@@ -1,14 +1,15 @@
 from typing import List
 
 from bs4 import BeautifulSoup
-from feeluown.library import SongModel, BriefArtistModel, PlaylistModel, BriefPlaylistModel, BriefUserModel
+from feeluown.library import SongModel, BriefArtistModel, PlaylistModel, BriefPlaylistModel, BriefUserModel, \
+    BriefSongModel
 from feeluown.models import SearchModel, ModelExistence
 
 from fuo_bilibili import __identifier__
 from fuo_bilibili.api import SearchType
 from fuo_bilibili.api.schema.requests import SearchRequest
 from fuo_bilibili.api.schema.responses import SearchResponse, SearchResultVideo, VideoInfoResponse, \
-    FavoriteListResponse, FavoriteInfoResponse
+    FavoriteListResponse, FavoriteInfoResponse, FavoriteResourceResponse
 
 PROVIDER_ID = __identifier__
 
@@ -17,8 +18,19 @@ class BSongModel(SongModel):
     source: str = PROVIDER_ID
 
     @classmethod
+    def create_brief_model(cls, media: FavoriteResourceResponse.FavoriteResourceResponseData.Media) -> BriefSongModel:
+        return BriefSongModel(
+            source=__identifier__,
+            identifier=media.bvid,
+            title=media.title,
+            artists_name=media.upper.name,
+            duration_ms=str(media.duration)
+        )
+
+    @classmethod
     def create_model(cls, result: SearchResultVideo) -> 'BSongModel':
         return cls(
+            source=__identifier__,
             identifier=result.bvid,
             album=None,
             title=BeautifulSoup(result.title).get_text(),
@@ -34,6 +46,7 @@ class BSongModel(SongModel):
     def create_info_model(cls, response: VideoInfoResponse) -> 'BSongModel':
         result = response.data
         return cls(
+            source=__identifier__,
             identifier=result.bvid,
             album=None,
             title=result.title,

@@ -372,4 +372,33 @@ class FavoriteInfoResponse(BaseResponse):
 
 
 class FavoriteResourceResponse(BaseResponse):
-    pass
+    class FavoriteResourceResponseData(BaseModel):
+        class Media(BaseModel):
+            class Upper(BaseModel):
+                mid: int
+                name: str
+                face: str
+
+            class CntInfo(BaseModel):
+                collect: int
+                play: int
+                danmaku: int
+
+            id: int
+            type: int
+            title: str
+            cover: str
+            intro: str
+            page: int
+            duration: timedelta
+            upper: Upper
+            cnt_info: CntInfo
+            link: str  # 视频 deeplink
+            # ctime: datetime
+            # pubtime: datetime
+            # favtime: datetime
+            bvid: str
+
+        medias: List[Media]
+
+    data: FavoriteResourceResponseData = None

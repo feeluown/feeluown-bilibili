@@ -2,7 +2,8 @@ import math
 from typing import List, Optional
 
 from feeluown.excs import NoUserLoggedIn
-from feeluown.library import AbstractProvider, ProviderV2, ProviderFlags as Pf, UserModel, VideoModel
+from feeluown.library import AbstractProvider, ProviderV2, ProviderFlags as Pf, UserModel, VideoModel, \
+    BriefPlaylistModel
 from feeluown.library.model_protocol import VideoProtocol
 from feeluown.media import Quality, Media, MediaType
 from feeluown.models import SearchType as FuoSearchType, ModelType
@@ -33,7 +34,7 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
         flags: dict = {
             ModelType.song: (Pf.model_v2 | Pf.get | Pf.multi_quality | Pf.lyric | Pf.mv),
             ModelType.video: (Pf.model_v2 | Pf.multi_quality | Pf.get),
-            ModelType.playlist: (Pf.model_v2 | Pf.get),
+            ModelType.playlist: (Pf.model_v2 | Pf.get | Pf.songs_rd),
         }
 
     def __init__(self):
@@ -147,19 +148,21 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
         return BPlaylistModel.create_model_list(resp)
 
     def playlist_get(self, identifier) -> BPlaylistModel:
+        # fixme: fuo should support playlist_get v2 first
         resp = self._api.favorite_info(FavoriteInfoRequest(media_id=int(identifier)))
         return BPlaylistModel.create_info_model(resp)
 
-    # def playlist_create_songs_rd(self, playlist):
-    #     def g():
-    #         page = 1
-    #         # while page <= math.ceil(playlist.count / 20):
-    #         response = self._api.favorite_resource(FavoriteResourceRequest(
-    #             media_id=playlist.identifier,
-    #             pn=page,
-    #         ))
-    #         print(response)
-    #         page += 1
+    def playlist_create_songs_rd(self, playlist):
+        def g():
+            page = 1
+            while page <= math.ceil(playlist.count / 20):
+                response = self._api.favorite_resource(FavoriteResourceRequest(
+                    media_id=playlist.identifier,
+                    pn=page,
+                ))
+                for m in response.data.medias:
+                    yield BSongModel.create_brief_model(m)
+                page += 1
 
         return SequentialReader(g(), playlist.count)
 
