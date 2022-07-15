@@ -36,8 +36,7 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin):
         print('dumping cookies to file')
         self._cookie.save()
 
-    @cached(CACHE)
-    def get(self, url: str, param: Optional[BaseRequest], clazz: Union[Type[BaseResponse], Type[BaseModel], None])\
+    def get_uncached(self, url: str, param: Optional[BaseRequest], clazz: Union[Type[BaseResponse], Type[BaseModel], None]) \
             -> Union[BaseResponse, BaseModel, None]:
         print(f'Requesting: {url}...')
         if param is None:
@@ -55,6 +54,11 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin):
         if isinstance(res, BaseResponse) and res.code != 0:
             raise RuntimeError(f'code not ok: {res.message}')
         return res
+
+    @cached(CACHE)
+    def get(self, url: str, param: Optional[BaseRequest], clazz: Union[Type[BaseResponse], Type[BaseModel], None])\
+            -> Union[BaseResponse, BaseModel, None]:
+        return self.get_uncached(url, param, clazz)
 
     def post(self, url: str, param: Optional[BaseRequest], clazz: Type[BaseResponse], is_json=False, **kwargs)\
             -> BaseResponse:

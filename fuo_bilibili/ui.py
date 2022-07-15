@@ -93,16 +93,18 @@ class BAuthDialog(QDialog):
 
     @exception_handler
     def request_challenge_params(self, type_: str):
+        self.auth_link.setText(f'<a href="#">正在获取验证链接...</a>')
         self.type = type_
         self.validate_input.clear()
-        self.challenge_input.clear()
+        self.seccode_input.clear()
         data = self._provider.request_captcha()
         geetest = data.geetest
         self.gt_input.setText(geetest.gt)
         self.challenge_input.setText(geetest.challenge)
         self._token = data.token
         self.auth_link.setText(
-            f'<a href="https://brucezhang1993.github.io/fuo-geetest-validator/?gt={geetest.gt}&challenge={geetest.challenge}">点击链接完成验证</a>')
+            f'<a href="https://brucezhang1993.github.io/fuo-geetest-validator/?gt={geetest.gt}'
+            f'&challenge={geetest.challenge}">点击链接完成验证</a>')
 
 
 class BLoginDialog(QDialog):
