@@ -101,6 +101,7 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
         return [Quality.Video.hd]
 
     def song_get_mv(self, song) -> Optional[VideoModel]:
+        song = self.song_get(song.identifier)
         return VideoModel(
             source=__identifier__,
             identifier=song.identifier,
