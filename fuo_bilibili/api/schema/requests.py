@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 
 from fuo_bilibili.api.schema.enums import VideoQualityNum, VideoFnval, SearchType, SearchOrderType, UserType, \
-    VideoDurationType
+    VideoDurationType, FavoriteResourceOrderType
 
 
 class BaseRequest(BaseModel):
@@ -65,3 +65,23 @@ class PlayUrlRequest(BaseRequest):
     fourk: int = None  # 是否允许4K视频
     otype: str = 'json'
     platform: str = 'pc'
+
+
+class FavoriteListRequest(BaseRequest):
+    up_mid: int  # UID
+    type: int = 2  # 2:视频
+    rid: int = None  # 资源ID
+
+
+class FavoriteInfoRequest(BaseRequest):
+    media_id: int  # 收藏夹ID
+
+
+class FavoriteResourceRequest(BaseRequest):
+    media_id: int  # 收藏夹ID
+    pn: int  # 页码
+    ps: int = 20  # 每页数量
+    keyword: str = None  # 关键词搜索
+    order: FavoriteResourceOrderType = FavoriteResourceOrderType.MTIME  # 排序方式
+    type: int = 0
+    tid: int = 0

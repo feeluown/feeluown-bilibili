@@ -326,3 +326,50 @@ class PlayUrlResponse(BaseResponse):
             return v / 1000
 
     data: PlayUrlResponseData = None
+
+
+class FavoriteListResponse(BaseResponse):
+    class FavoriteListResponseData(BaseModel):
+        class FavoriteList(BaseModel):
+            id: int  # 收藏id
+            fid: int  # 原始收藏夹id
+            mid: int  # 创建者UID
+            attr: int
+            title: str  # 收藏夹标题
+            fav_state: bool
+            media_count: int  # 收藏夹内容数量
+
+        count: int  # 总数
+        list: List[FavoriteList]  # 收藏列表
+
+    data: FavoriteListResponseData = None
+
+
+class FavoriteInfoResponse(BaseResponse):
+    class FavoriteInfoResponseData(BaseModel):
+        class Upper(BaseModel):
+            mid: int
+            name: str
+            face: str
+            followed: bool
+            vip_type: VipType
+            vip_statue: bool
+
+        id: int
+        fid: int
+        mid: int
+        attr: int
+        title: str  # 标题
+        cover: str  # 封面
+        upper: Upper  # 创建者信息
+        type: int
+        intro: str  # 备注
+        fav_state: bool  # 是否收藏
+        like_state: bool  # 是否点赞
+        media_count: int  # 收藏夹的内容数量
+
+    data: FavoriteInfoResponseData = None
+
+
+class FavoriteResourceResponse(BaseResponse):
+    pass

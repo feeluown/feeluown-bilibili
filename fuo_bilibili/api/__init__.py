@@ -8,6 +8,7 @@ from pydantic import BaseModel
 
 from fuo_bilibili.api.base import BaseMixin
 from fuo_bilibili.api.login import LoginMixin
+from fuo_bilibili.api.playlist import PlaylistMixin
 from fuo_bilibili.api.schema.enums import VideoQualityNum, SearchType
 from fuo_bilibili.api.schema.requests import BaseRequest, VideoInfoRequest, PlayUrlRequest, SearchRequest
 from fuo_bilibili.api.schema.responses import BaseResponse
@@ -17,7 +18,7 @@ from fuo_bilibili.const import PLUGIN_API_COOKIEJAR_FILE
 CACHE = LRUCache(10)
 
 
-class BilibiliApi(BaseMixin, VideoMixin, LoginMixin):
+class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin):
     def __init__(self):
         self._cookie = MozillaCookieJar(PLUGIN_API_COOKIEJAR_FILE)
         self._session = requests.Session()
@@ -41,10 +42,8 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin):
         print(f'Requesting: {url}...')
         if param is None:
             r = self._session.get(url)
-            print(r.request.headers)
         else:
             r = self._session.get(url, params=json.loads(param.json(exclude_none=True)))
-        print(r.text)
         if r.status_code != 200:
             raise RuntimeError('http not 200')
         if clazz is None:
@@ -66,16 +65,13 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin):
             r = self._session.post(url, **kwargs)
         else:
             request = json.loads(param.json(exclude_none=True, by_alias=True))
-            print(request)
             if is_json:
                 r = self._session.post(url, json=request, **kwargs)
             else:
                 r = self._session.post(url, data=request, **kwargs)
         if r.status_code != 200:
-            print(r.request.headers, r.text)
             raise RuntimeError(f'http not 200: {r.status_code}')
         response_str = r.text
-        print(json.loads(param.json(exclude_none=True, by_alias=True)), response_str)
         res = clazz.parse_raw(response_str)
         if res.code != 0:
             raise RuntimeError(f'code not ok: {res.code} {res.message}')

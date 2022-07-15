@@ -192,7 +192,6 @@ class BLoginDialog(QDialog):
             code=self.sms_code_input.text(),
             captcha_key=self._captcha_id
         ))
-        print(resp)
         self.close()
 
     @exception_handler
@@ -254,8 +253,16 @@ class BUiManager:
         self._pvd_uimgr.add_item(self._pvd_item)
         self.login_dialog = BLoginDialog(None, self._provider)
 
+    async def load_user_content(self):
+        left = self._app.ui.left_panel
+        left.playlists_con.show()
+        playlists = self._provider.user_playlists(self._user.identifier)
+        self._app.pl_uimgr.clear()
+        self._app.pl_uimgr.add(playlists)
+
     def _login(self):
         self._user = self._provider.auth(None)
+        asyncio.ensure_future(self.load_user_content())
 
     def _login_or_get_user(self):
         if self._provider.cookie_check():

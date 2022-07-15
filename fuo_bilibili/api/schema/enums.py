@@ -136,3 +136,9 @@ class VideoFrom(Enum):
     VUPLOAD = 'vupload'  # 普通上传（B站）
     HUNAN = 'hunan'  # 芒果TV
     QQ = 'qq'  # 腾讯视频
+
+
+class FavoriteResourceOrderType(Enum):
+    MTIME = 'mtime'  # 最近收藏
+    VIEW = 'view'  # 最多播放
+    PUBTIME = 'pubtime'  # 最新投稿

@@ -1,3 +1,4 @@
+import math
 from typing import List, Optional
 
 from feeluown.excs import NoUserLoggedIn
@@ -5,15 +6,17 @@ from feeluown.library import AbstractProvider, ProviderV2, ProviderFlags as Pf, 
 from feeluown.library.model_protocol import VideoProtocol
 from feeluown.media import Quality, Media, MediaType
 from feeluown.models import SearchType as FuoSearchType, ModelType
+from feeluown.utils.reader import SequentialReader
 
 from fuo_bilibili import __identifier__, __alias__
 from fuo_bilibili.api import BilibiliApi, SearchRequest, SearchType as BilibiliSearchType, VideoInfoRequest, \
     PlayUrlRequest, VideoQualityNum
 from fuo_bilibili.api.schema.enums import VideoFnval
-from fuo_bilibili.api.schema.requests import PasswordLoginRequest, SendSmsCodeRequest, SmsCodeLoginRequest
+from fuo_bilibili.api.schema.requests import PasswordLoginRequest, SendSmsCodeRequest, SmsCodeLoginRequest, \
+    FavoriteListRequest, FavoriteInfoRequest, FavoriteResourceRequest
 from fuo_bilibili.api.schema.responses import RequestCaptchaResponse, RequestLoginKeyResponse, PasswordLoginResponse, \
     SendSmsCodeResponse, SmsCodeLoginResponse, NavInfoResponse
-from fuo_bilibili.model import BSearchModel, BSongModel
+from fuo_bilibili.model import BSearchModel, BSongModel, BPlaylistModel
 
 SEARCH_TYPE_MAP = {
     FuoSearchType.vi: BilibiliSearchType.VIDEO,
@@ -29,7 +32,8 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
         name: str = __alias__
         flags: dict = {
             ModelType.song: (Pf.model_v2 | Pf.get | Pf.multi_quality | Pf.lyric | Pf.mv),
-            ModelType.video: (Pf.model_v2 | Pf.multi_quality | Pf.get)
+            ModelType.video: (Pf.model_v2 | Pf.multi_quality | Pf.get),
+            ModelType.playlist: (Pf.model_v2 | Pf.get),
         }
 
     def __init__(self):
@@ -137,6 +141,27 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
         print(len(response.data.dash.audio))
         return Media(response.data.dash.audio[0].base_url, type_=MediaType.video,
                      http_headers={'Referer': 'https://www.bilibili.com/'})
+
+    def user_playlists(self, identifier) -> List[BPlaylistModel]:
+        resp = self._api.favorite_list(FavoriteListRequest(up_mid=int(identifier)))
+        return BPlaylistModel.create_model_list(resp)
+
+    def playlist_get(self, identifier) -> BPlaylistModel:
+        resp = self._api.favorite_info(FavoriteInfoRequest(media_id=int(identifier)))
+        return BPlaylistModel.create_info_model(resp)
+
+    # def playlist_create_songs_rd(self, playlist):
+    #     def g():
+    #         page = 1
+    #         # while page <= math.ceil(playlist.count / 20):
+    #         response = self._api.favorite_resource(FavoriteResourceRequest(
+    #             media_id=playlist.identifier,
+    #             pn=page,
+    #         ))
+    #         print(response)
+    #         page += 1
+
+        return SequentialReader(g(), playlist.count)
 
     @property
     def identifier(self):
