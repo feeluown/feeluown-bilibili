@@ -129,7 +129,7 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
         info = self._api.video_get_info(VideoInfoRequest(bvid=song.identifier))
         response = self._api.video_get_url(PlayUrlRequest(
             bvid=song.identifier,
-            qn=VideoQualityNum.q720,
+            qn=VideoQualityNum.q8k,
             cid=info.data.cid,
             fnval=VideoFnval.DASH
         ))
