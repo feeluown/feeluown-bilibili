@@ -24,7 +24,7 @@ class BSongModel(SongModel):
             identifier=media.bvid,
             title=media.title,
             artists_name=media.upper.name,
-            duration_ms=str(media.duration)
+            duration_ms=str(media.duration).lstrip('0:')
         )
 
     @classmethod
