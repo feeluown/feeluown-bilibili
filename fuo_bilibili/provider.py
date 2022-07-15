@@ -142,7 +142,7 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
         return Media(response.data.dash.audio[0].base_url, type_=MediaType.video,
                      http_headers={'Referer': 'https://www.bilibili.com/'})
 
-    def user_playlists(self, identifier) -> List[BPlaylistModel]:
+    def user_playlists(self, identifier) -> List[BriefPlaylistModel]:
         resp = self._api.favorite_list(FavoriteListRequest(up_mid=int(identifier)))
         return BPlaylistModel.create_model_list(resp)
 
