@@ -3,7 +3,7 @@ from typing import List, Optional
 from feeluown.excs import NoUserLoggedIn
 from feeluown.library import AbstractProvider, ProviderV2, ProviderFlags as Pf, UserModel, VideoModel
 from feeluown.library.model_protocol import VideoProtocol
-from feeluown.media import Quality, Media
+from feeluown.media import Quality, Media, MediaType
 from feeluown.models import SearchType as FuoSearchType, ModelType
 
 from fuo_bilibili import __identifier__, __alias__
@@ -134,7 +134,7 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
             fnval=VideoFnval.DASH
         ))
         print(len(response.data.dash.audio))
-        return Media(response.data.dash.audio[0].base_url, bitrate=320, format='mp3',
+        return Media(response.data.dash.audio[0].base_url, bitrate=320, format='mp3', type_=MediaType.video,
                      http_headers={'Referer': 'https://www.bilibili.com/'})
 
     @property
