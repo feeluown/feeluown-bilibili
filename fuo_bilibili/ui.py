@@ -257,8 +257,10 @@ class BUiManager:
         left = self._app.ui.left_panel
         left.playlists_con.show()
         playlists = self._provider.user_playlists(self._user.identifier)
+        fav_playlists = self._provider.fav_playlists(self._user.identifier)
         self._app.pl_uimgr.clear()
         self._app.pl_uimgr.add(playlists)
+        self._app.pl_uimgr.add(fav_playlists, is_fav=True)
 
     def _login(self):
         self._user = self._provider.auth(None)

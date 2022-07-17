@@ -14,7 +14,7 @@ from fuo_bilibili.api import BilibiliApi, SearchRequest, SearchType as BilibiliS
     PlayUrlRequest, VideoQualityNum
 from fuo_bilibili.api.schema.enums import VideoFnval
 from fuo_bilibili.api.schema.requests import PasswordLoginRequest, SendSmsCodeRequest, SmsCodeLoginRequest, \
-    FavoriteListRequest, FavoriteInfoRequest, FavoriteResourceRequest
+    FavoriteListRequest, FavoriteInfoRequest, FavoriteResourceRequest, CollectedFavoriteListRequest
 from fuo_bilibili.api.schema.responses import RequestCaptchaResponse, RequestLoginKeyResponse, PasswordLoginResponse, \
     SendSmsCodeResponse, SmsCodeLoginResponse, NavInfoResponse
 from fuo_bilibili.model import BSearchModel, BSongModel, BPlaylistModel
@@ -145,6 +145,10 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
 
     def user_playlists(self, identifier) -> List[BriefPlaylistModel]:
         resp = self._api.favorite_list(FavoriteListRequest(up_mid=int(identifier)))
+        return BPlaylistModel.create_model_list(resp)
+
+    def fav_playlists(self, identifier) -> List[BriefPlaylistModel]:
+        resp = self._api.collected_favorite_list(CollectedFavoriteListRequest(up_mid=int(identifier), ps=40))
         return BPlaylistModel.create_model_list(resp)
 
     def playlist_get(self, identifier) -> BPlaylistModel:

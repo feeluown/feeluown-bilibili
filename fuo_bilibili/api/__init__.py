@@ -10,7 +10,8 @@ from fuo_bilibili.api.base import BaseMixin
 from fuo_bilibili.api.login import LoginMixin
 from fuo_bilibili.api.playlist import PlaylistMixin
 from fuo_bilibili.api.schema.enums import VideoQualityNum, SearchType
-from fuo_bilibili.api.schema.requests import BaseRequest, VideoInfoRequest, PlayUrlRequest, SearchRequest
+from fuo_bilibili.api.schema.requests import BaseRequest, VideoInfoRequest, PlayUrlRequest, SearchRequest, \
+    FavoriteListRequest
 from fuo_bilibili.api.schema.responses import BaseResponse
 from fuo_bilibili.api.video import VideoMixin
 from fuo_bilibili.const import PLUGIN_API_COOKIEJAR_FILE
@@ -86,6 +87,7 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin):
 
 def main():
     api = BilibiliApi()
+    api.load_cookies()
     info = api.nav_info()
     print(info)
     api.close()

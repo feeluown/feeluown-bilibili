@@ -20,6 +20,15 @@ class Dimension(BaseModel):
     rotate: int
 
 
+class Upper(BaseModel):
+    mid: int
+    name: str
+    face: str = ''
+    followed: bool = None
+    vip_type: VipType = None
+    vip_statue: bool = None
+
+
 class SearchResultVideo(BaseModel):
     type: SearchType
     id: int  # av号
@@ -345,16 +354,34 @@ class FavoriteListResponse(BaseResponse):
     data: FavoriteListResponseData = None
 
 
+class CollectedFavoriteListResponse(BaseResponse):
+    class CollectedFavoriteListResponseData(BaseModel):
+        class CollectedFavoriteList(BaseModel):
+            id: int  # 收藏id
+            fid: int  # 原始收藏夹id
+            mid: int  # 创建者UID
+            attr: int
+            title: str  # 收藏夹标题
+            fav_state: bool
+            media_count: int  # 收藏夹内容数量
+            cover: str  # 封面
+            cover_type: int
+            intro: str  # 简介
+            link: str
+            mtime: datetime
+            state: int
+            type: int
+            upper: Upper
+            view_count: int  # 总播放
+
+        count: int  # 总数
+        list: List[CollectedFavoriteList]  # 收藏列表
+
+    data: CollectedFavoriteListResponseData = None
+
+
 class FavoriteInfoResponse(BaseResponse):
     class FavoriteInfoResponseData(BaseModel):
-        class Upper(BaseModel):
-            mid: int
-            name: str
-            face: str
-            followed: bool
-            vip_type: VipType
-            vip_statue: bool
-
         id: int
         fid: int
         mid: int

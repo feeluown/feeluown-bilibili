@@ -16,6 +16,11 @@ class GeetestBase(BaseModel):
     seccode: str
 
 
+class PaginatedRequest(BaseRequest):
+    pn: int = 1  # 页码
+    ps: int = 20  # 每页数量
+
+
 class SendSmsCodeRequest(BaseRequest, GeetestBase):
     tel: str  # 手机号（不包含国家代码）
     cid: str = '+86'  # 国家代码
@@ -73,14 +78,17 @@ class FavoriteListRequest(BaseRequest):
     rid: int = None  # 资源ID
 
 
+class CollectedFavoriteListRequest(PaginatedRequest):
+    up_mid: int  # UID
+    platform: str = 'web'
+
+
 class FavoriteInfoRequest(BaseRequest):
     media_id: int  # 收藏夹ID
 
 
-class FavoriteResourceRequest(BaseRequest):
+class FavoriteResourceRequest(PaginatedRequest):
     media_id: int  # 收藏夹ID
-    pn: int  # 页码
-    ps: int = 20  # 每页数量
     keyword: str = None  # 关键词搜索
     order: FavoriteResourceOrderType = FavoriteResourceOrderType.MTIME  # 排序方式
     type: int = 0

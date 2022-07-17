@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 
 from bs4 import BeautifulSoup
 from feeluown.library import SongModel, BriefArtistModel, PlaylistModel, BriefPlaylistModel, BriefUserModel, \
@@ -9,7 +9,7 @@ from fuo_bilibili import __identifier__
 from fuo_bilibili.api import SearchType
 from fuo_bilibili.api.schema.requests import SearchRequest
 from fuo_bilibili.api.schema.responses import SearchResponse, SearchResultVideo, VideoInfoResponse, \
-    FavoriteListResponse, FavoriteInfoResponse, FavoriteResourceResponse
+    FavoriteListResponse, FavoriteInfoResponse, FavoriteResourceResponse, CollectedFavoriteListResponse
 
 PROVIDER_ID = __identifier__
 
@@ -86,7 +86,9 @@ class BPlaylistModel(PlaylistModel):
     count: int
 
     @classmethod
-    def create_brief_model(cls, fav: FavoriteListResponse.FavoriteListResponseData.FavoriteList):
+    def create_brief_model(cls, fav: Union[FavoriteListResponse.FavoriteListResponseData.FavoriteList,
+                                           CollectedFavoriteListResponse.CollectedFavoriteListResponseData
+                           .CollectedFavoriteList]):
         return BriefPlaylistModel(
             source=PROVIDER_ID,
             identifier=fav.id,
@@ -111,5 +113,5 @@ class BPlaylistModel(PlaylistModel):
         )
 
     @classmethod
-    def create_model_list(cls, response: FavoriteListResponse):
+    def create_model_list(cls, response: Union[FavoriteListResponse, CollectedFavoriteListResponse]):
         return [cls.create_brief_model(f) for f in response.data.list]

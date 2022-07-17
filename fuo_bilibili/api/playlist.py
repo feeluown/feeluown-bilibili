@@ -3,9 +3,9 @@ from typing import Type, Any, Optional, Union
 from pydantic import BaseModel
 
 from fuo_bilibili.api.schema.requests import BaseRequest, FavoriteListRequest, FavoriteInfoRequest, \
-    FavoriteResourceRequest
+    FavoriteResourceRequest, CollectedFavoriteListRequest
 from fuo_bilibili.api.schema.responses import BaseResponse, FavoriteListResponse, FavoriteInfoResponse, \
-    FavoriteResourceResponse
+    FavoriteResourceResponse, CollectedFavoriteListResponse
 
 
 class PlaylistMixin:
@@ -24,6 +24,10 @@ class PlaylistMixin:
     def favorite_list(self, request: FavoriteListRequest) -> FavoriteListResponse:
         url = f'{self.APIX_BASE}/v3/fav/folder/created/list-all'
         return self.get(url, request, FavoriteListResponse)
+
+    def collected_favorite_list(self, request: CollectedFavoriteListRequest) -> CollectedFavoriteListResponse:
+        url = f'{self.APIX_BASE}/v3/fav/folder/collected/list'
+        return self.get(url, request, CollectedFavoriteListResponse)
 
     def favorite_info(self, request: FavoriteInfoRequest) -> FavoriteInfoResponse:
         url = f'{self.APIX_BASE}/v3/fav/folder/info'
