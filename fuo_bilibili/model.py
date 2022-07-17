@@ -9,7 +9,8 @@ from fuo_bilibili import __identifier__
 from fuo_bilibili.api import SearchType
 from fuo_bilibili.api.schema.requests import SearchRequest
 from fuo_bilibili.api.schema.responses import SearchResponse, SearchResultVideo, VideoInfoResponse, \
-    FavoriteListResponse, FavoriteInfoResponse, FavoriteResourceResponse, CollectedFavoriteListResponse
+    FavoriteListResponse, FavoriteInfoResponse, FavoriteResourceResponse, CollectedFavoriteListResponse, \
+    FavoriteSeasonResourceResponse
 
 PROVIDER_ID = __identifier__
 
@@ -91,26 +92,41 @@ class BPlaylistModel(PlaylistModel):
                            .CollectedFavoriteList]):
         return BriefPlaylistModel(
             source=PROVIDER_ID,
-            identifier=fav.id,
+            identifier=f'{fav.type}_{fav.id}',
             creator_name='',
             name=fav.title,
         )
 
     @classmethod
-    def create_info_model(cls, response: FavoriteInfoResponse):
-        return cls(
-            source=PROVIDER_ID,
-            identifier=response.data.id,
-            creator=BriefUserModel(
+    def create_info_model(cls, response: Union[FavoriteInfoResponse, FavoriteSeasonResourceResponse]):
+        if isinstance(response, FavoriteSeasonResourceResponse):
+            return cls(
                 source=PROVIDER_ID,
-                identifier=response.data.upper.mid,
-                name=response.data.upper.name,
-            ),
-            name=response.data.title,
-            cover=response.data.cover,
-            description=response.data.intro,
-            count=response.data.media_count,
-        )
+                identifier=f'21_{response.data.info.id}',
+                creator=BriefUserModel(
+                    source=PROVIDER_ID,
+                    identifier=response.data.info.upper.mid,
+                    name=response.data.info.upper.name,
+                ),
+                name=response.data.info.title,
+                cover=response.data.info.cover,
+                description=f'{response.data.info.media_count}个视频，{response.data.info.cnt_info.play}播放',
+                count=response.data.info.media_count,
+            )
+        else:
+            return cls(
+                source=PROVIDER_ID,
+                identifier=f'{response.data.type}_{response.data.id}',
+                creator=BriefUserModel(
+                    source=PROVIDER_ID,
+                    identifier=response.data.upper.mid,
+                    name=response.data.upper.name,
+                ),
+                name=response.data.title,
+                cover=response.data.cover,
+                description=response.data.intro,
+                count=response.data.media_count,
+            )
 
     @classmethod
     def create_model_list(cls, response: Union[FavoriteListResponse, CollectedFavoriteListResponse]):

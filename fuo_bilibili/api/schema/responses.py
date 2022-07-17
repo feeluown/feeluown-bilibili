@@ -29,6 +29,12 @@ class Upper(BaseModel):
     vip_statue: bool = None
 
 
+class CntInfo(BaseModel):
+    collect: int
+    play: int
+    danmaku: int = None
+
+
 class SearchResultVideo(BaseModel):
     type: SearchType
     id: int  # av号
@@ -347,6 +353,7 @@ class FavoriteListResponse(BaseResponse):
             title: str  # 收藏夹标题
             fav_state: bool
             media_count: int  # 收藏夹内容数量
+            type: int = 11
 
         count: int  # 总数
         list: List[FavoriteList]  # 收藏列表
@@ -370,7 +377,7 @@ class CollectedFavoriteListResponse(BaseResponse):
             link: str
             mtime: datetime
             state: int
-            type: int
+            type: int  # 11: 分P 21: 合集
             upper: Upper
             view_count: int  # 总播放
 
@@ -389,7 +396,7 @@ class FavoriteInfoResponse(BaseResponse):
         title: str  # 标题
         cover: str  # 封面
         upper: Upper  # 创建者信息
-        type: int
+        type: int  # 11: 分P 21: 合集
         intro: str  # 备注
         fav_state: bool  # 是否收藏
         like_state: bool  # 是否点赞
@@ -401,16 +408,6 @@ class FavoriteInfoResponse(BaseResponse):
 class FavoriteResourceResponse(BaseResponse):
     class FavoriteResourceResponseData(BaseModel):
         class Media(BaseModel):
-            class Upper(BaseModel):
-                mid: int
-                name: str
-                face: str
-
-            class CntInfo(BaseModel):
-                collect: int
-                play: int
-                danmaku: int
-
             id: int
             type: int
             title: str
@@ -426,6 +423,35 @@ class FavoriteResourceResponse(BaseResponse):
             # favtime: datetime
             bvid: str
 
-        medias: List[Media]
+        medias: List[Media] = None
 
     data: FavoriteResourceResponseData = None
+
+
+class FavoriteSeasonResourceResponse(BaseResponse):
+    class FavoriteSeasonResourceResponseData(BaseModel):
+        class Info(BaseModel):
+            cnt_info: CntInfo
+            cover: str
+            id: int
+            media_count: int
+            season_type: int
+            title: str
+            upper: Upper
+
+        class Media(BaseModel):
+            id: int
+            title: str
+            cover: str
+            duration: timedelta
+            upper: Upper
+            cnt_info: CntInfo
+            # ctime: datetime
+            # pubtime: datetime
+            # favtime: datetime
+            bvid: str
+
+        info: Info
+        medias: List[Media] = None
+
+    data: FavoriteSeasonResourceResponseData = None

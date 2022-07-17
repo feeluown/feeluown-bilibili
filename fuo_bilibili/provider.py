@@ -4,7 +4,6 @@ from typing import List, Optional
 from feeluown.excs import NoUserLoggedIn
 from feeluown.library import AbstractProvider, ProviderV2, ProviderFlags as Pf, UserModel, VideoModel, \
     BriefPlaylistModel
-from feeluown.library.model_protocol import VideoProtocol
 from feeluown.media import Quality, Media, MediaType
 from feeluown.models import SearchType as FuoSearchType, ModelType
 from feeluown.utils.reader import SequentialReader
@@ -14,7 +13,8 @@ from fuo_bilibili.api import BilibiliApi, SearchRequest, SearchType as BilibiliS
     PlayUrlRequest, VideoQualityNum
 from fuo_bilibili.api.schema.enums import VideoFnval
 from fuo_bilibili.api.schema.requests import PasswordLoginRequest, SendSmsCodeRequest, SmsCodeLoginRequest, \
-    FavoriteListRequest, FavoriteInfoRequest, FavoriteResourceRequest, CollectedFavoriteListRequest
+    FavoriteListRequest, FavoriteInfoRequest, FavoriteResourceRequest, CollectedFavoriteListRequest, \
+    FavoriteSeasonResourceRequest
 from fuo_bilibili.api.schema.responses import RequestCaptchaResponse, RequestLoginKeyResponse, PasswordLoginResponse, \
     SendSmsCodeResponse, SmsCodeLoginResponse, NavInfoResponse
 from fuo_bilibili.model import BSearchModel, BSongModel, BPlaylistModel
@@ -151,19 +151,31 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
         resp = self._api.collected_favorite_list(CollectedFavoriteListRequest(up_mid=int(identifier), ps=40))
         return BPlaylistModel.create_model_list(resp)
 
-    def playlist_get(self, identifier) -> BPlaylistModel:
+    def playlist_get(self, identifier: str) -> BPlaylistModel:
         # fixme: fuo should support playlist_get v2 first
-        resp = self._api.favorite_info(FavoriteInfoRequest(media_id=int(identifier)))
+        fav_type, id_ = identifier.split('_')
+        if int(fav_type) == 21:
+            resp = self._api.favorite_season_resource(FavoriteSeasonResourceRequest(season_id=int(id_), ps=0))
+        else:
+            resp = self._api.favorite_info(FavoriteInfoRequest(media_id=int(id_)))
         return BPlaylistModel.create_info_model(resp)
 
     def playlist_create_songs_rd(self, playlist):
         def g():
+            fav_type, id_ = playlist.identifier.split('_')
+            is_season = int(fav_type) == 21
             page = 1
             while page <= math.ceil(playlist.count / 20):
-                response = self._api.favorite_resource(FavoriteResourceRequest(
-                    media_id=playlist.identifier,
-                    pn=page,
-                ))
+                if is_season:
+                    response = self._api.favorite_season_resource(FavoriteSeasonResourceRequest(
+                        season_id=int(id_),
+                        pn=page,
+                    ))
+                else:
+                    response = self._api.favorite_resource(FavoriteResourceRequest(
+                        media_id=int(id_),
+                        pn=page,
+                    ))
                 for m in response.data.medias:
                     yield BSongModel.create_brief_model(m)
                 page += 1

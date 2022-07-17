@@ -93,3 +93,7 @@ class FavoriteResourceRequest(PaginatedRequest):
     order: FavoriteResourceOrderType = FavoriteResourceOrderType.MTIME  # 排序方式
     type: int = 0
     tid: int = 0
+
+
+class FavoriteSeasonResourceRequest(PaginatedRequest):
+    season_id: int  # 合集ID
