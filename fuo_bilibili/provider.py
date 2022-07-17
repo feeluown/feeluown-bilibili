@@ -124,7 +124,6 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
             cid=info.data.cid,
             fnval=VideoFnval.FLV
         ))
-        print(len(response.data.durl))
         return Media(response.data.durl[0].url, format='flv',
                      http_headers={'Referer': 'https://www.bilibili.com/'})
 
@@ -139,8 +138,7 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
             cid=info.data.cid,
             fnval=VideoFnval.DASH
         ))
-        print(len(response.data.dash.audio))
-        return Media(response.data.dash.audio[0].base_url, type_=MediaType.video,
+        return Media(response.data.dash.audio[0].base_url, type_=MediaType.audio, format='m4s', bitrate=320,
                      http_headers={'Referer': 'https://www.bilibili.com/'})
 
     def user_playlists(self, identifier) -> List[BriefPlaylistModel]:
