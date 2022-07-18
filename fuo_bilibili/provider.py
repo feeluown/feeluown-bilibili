@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from feeluown.excs import NoUserLoggedIn
 from feeluown.library import AbstractProvider, ProviderV2, ProviderFlags as Pf, UserModel, VideoModel, \
-    BriefPlaylistModel
+    BriefPlaylistModel, BriefSongModel
 from feeluown.media import Quality, Media, MediaType
 from feeluown.models import SearchType as FuoSearchType, ModelType
 from feeluown.utils.reader import SequentialReader
@@ -179,6 +179,10 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
                 page += 1
 
         return SequentialReader(g(), playlist.count)
+
+    def history_later_videos(self) -> List[BriefSongModel]:
+        resp = self._api.history_later_videos()
+        return BSongModel.create_history_brief_model_list(resp)
 
     @property
     def identifier(self):

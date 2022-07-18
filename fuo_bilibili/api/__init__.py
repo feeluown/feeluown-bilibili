@@ -7,6 +7,7 @@ from cachetools import LRUCache, cached
 from pydantic import BaseModel
 
 from fuo_bilibili.api.base import BaseMixin
+from fuo_bilibili.api.history import HistoryMixin
 from fuo_bilibili.api.login import LoginMixin
 from fuo_bilibili.api.playlist import PlaylistMixin
 from fuo_bilibili.api.schema.enums import VideoQualityNum, SearchType
@@ -19,7 +20,7 @@ from fuo_bilibili.const import PLUGIN_API_COOKIEJAR_FILE
 CACHE = LRUCache(10)
 
 
-class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin):
+class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin):
     def __init__(self):
         self._cookie = MozillaCookieJar(PLUGIN_API_COOKIEJAR_FILE)
         self._session = requests.Session()

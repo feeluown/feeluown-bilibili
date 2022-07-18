@@ -18,9 +18,6 @@ class PlaylistMixin:
     def post(self, url: str, param: Optional[BaseRequest], clazz: Type[BaseResponse], is_json=False, **kwargs) -> Any:
         pass
 
-    def _dump_cookie_to_file(self):
-        pass
-
     def favorite_list(self, request: FavoriteListRequest) -> FavoriteListResponse:
         url = f'{self.APIX_BASE}/v3/fav/folder/created/list-all'
         return self.get(url, request, FavoriteListResponse)

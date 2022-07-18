@@ -10,7 +10,7 @@ from fuo_bilibili.api import SearchType
 from fuo_bilibili.api.schema.requests import SearchRequest
 from fuo_bilibili.api.schema.responses import SearchResponse, SearchResultVideo, VideoInfoResponse, \
     FavoriteListResponse, FavoriteInfoResponse, FavoriteResourceResponse, CollectedFavoriteListResponse, \
-    FavoriteSeasonResourceResponse
+    FavoriteSeasonResourceResponse, HistoryLaterVideoResponse
 
 PROVIDER_ID = __identifier__
 
@@ -59,6 +59,18 @@ class BSongModel(SongModel):
             duration=result.duration.total_seconds() * 1000,
             exists=ModelExistence.yes
         )
+
+    @classmethod
+    def create_history_brief_model_list(cls, resp: HistoryLaterVideoResponse) -> List[BriefSongModel]:
+        return [
+            BriefSongModel(
+                source=__identifier__,
+                identifier=media.bvid,
+                title=media.title,
+                artists_name=media.owner.name,
+                duration_ms=str(media.duration).lstrip('0:')
+            )
+            for media in resp.data.list]
 
 
 class BSearchModel(SearchModel):

@@ -252,15 +252,30 @@ class BUiManager:
         self._pvd_item.clicked.connect(self._login_or_get_user)
         self._pvd_uimgr.add_item(self._pvd_item)
         self.login_dialog = BLoginDialog(None, self._provider)
+        self.initialize()
+
+    def initialize(self):
+        from fuo_bilibili.pages.later import render as later
+        self._app.browser.route('/providers/bilibili/later')(later)
 
     async def load_user_content(self):
         left = self._app.ui.left_panel
         left.playlists_con.show()
+        left.my_music_con.show()
+        # 歌单列表
         playlists = self._provider.user_playlists(self._user.identifier)
         fav_playlists = self._provider.fav_playlists(self._user.identifier)
         self._app.pl_uimgr.clear()
         self._app.pl_uimgr.add(playlists)
         self._app.pl_uimgr.add(fav_playlists, is_fav=True)
+        # 观看历史
+        mymusic_later_item = self._app.mymusic_uimgr.create_item('🕒 观看历史')
+        mymusic_later_item.clicked.connect(
+            lambda: self._app.browser.goto(page='/providers/bilibili/later'),
+            weak=False
+        )
+        self._app.mymusic_uimgr.clear()
+        self._app.mymusic_uimgr.add_item(mymusic_later_item)
 
     def _login(self):
         self._user = self._provider.auth(None)

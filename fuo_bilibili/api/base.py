@@ -16,9 +16,6 @@ class BaseMixin:
     def post(self, url: str, param: Optional[BaseRequest], clazz: Type[BaseResponse], is_json=False, **kwargs) -> Any:
         pass
 
-    def _dump_cookie_to_file(self):
-        pass
-
     def search(self, request: SearchRequest) -> SearchResponse:
         url = f'{self.API_BASE}/search/type'
         return self.get(url, request, SearchResponse)

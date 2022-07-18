@@ -35,6 +35,49 @@ class CntInfo(BaseModel):
     danmaku: int = None
 
 
+class Owner(BaseModel):
+    mid: int  # UID
+    name: str  # 用户名
+    face: str  # 头像
+
+
+class Stat(BaseModel):
+    aid: int  # AV号
+    view: int  # 播放量
+    danmaku: int  # 弹幕量
+    reply: int  # 评论量
+    favorite: int  # 收藏量
+    coin: int  # 投币量
+    share: int  # 分享量
+    now_rank: int  # 当前排名
+    his_rank: int  # 历史最高排名
+    like: int  # 点赞量
+    dislike: int  # 点踩量
+    evaluation: str = None  # 视频评分
+    argue_msg: str = None  # 警告提示信息
+
+
+class Rights(BaseModel):
+    bp: int
+    elec: bool  # 支持充电
+    download: bool  # 允许下载
+    movie: bool  # 是否是电影
+    pay: bool  # 是否PGC付费
+    hd5: bool  # 是否支持高码率
+    no_reprint: bool  # 是否显示禁止转载
+    autoplay: bool  # 是否自动播放
+    ugc_pay: bool  # 是否UGC付费
+    is_cooperation: bool  # 是否联合投稿
+    ugc_pay_preview: bool  # UGC付费预览
+    no_background: bool
+    clean_mode: bool = None
+    is_stein_gate: bool = None
+    is_360: bool = None
+    no_share: bool = None
+    arc_pay: bool
+    free_watch: bool = None
+
+
 class SearchResultVideo(BaseModel):
     type: SearchType
     id: int  # av号
@@ -171,46 +214,6 @@ class VideoInfoResponse(BaseResponse):
             raw_text: str
             type: int
             biz_id: int = None
-
-        class Rights(BaseModel):
-            bp: int
-            elec: bool  # 支持充电
-            download: bool  # 允许下载
-            movie: bool  # 是否是电影
-            pay: bool  # 是否PGC付费
-            hd5: bool  # 是否支持高码率
-            no_reprint: bool  # 是否显示禁止转载
-            autoplay: bool  # 是否自动播放
-            ugc_pay: bool  # 是否UGC付费
-            is_cooperation: bool  # 是否联合投稿
-            ugc_pay_preview: bool  # UGC付费预览
-            no_background: bool
-            clean_mode: bool
-            is_stein_gate: bool
-            is_360: bool
-            no_share: bool
-            arc_pay: bool
-            free_watch: bool
-
-        class Owner(BaseModel):
-            mid: int  # UID
-            name: str  # 用户名
-            face: str  # 头像
-
-        class Stat(BaseModel):
-            aid: int  # AV号
-            view: int  # 播放量
-            danmaku: int  # 弹幕量
-            reply: int  # 评论量
-            favorite: int  # 收藏量
-            coin: int  # 投币量
-            share: int  # 分享量
-            now_rank: int  # 当前排名
-            his_rank: int  # 历史最高排名
-            like: int  # 点赞量
-            dislike: int  # 点踩量
-            evaluation: str  # 视频评分
-            argue_msg: str  # 警告提示信息
 
         class Page(BaseModel):
             cid: int  # 分P cid
@@ -455,3 +458,32 @@ class FavoriteSeasonResourceResponse(BaseResponse):
         medias: List[Media] = None
 
     data: FavoriteSeasonResourceResponseData = None
+
+
+class HistoryLaterVideoResponse(BaseResponse):
+    class HistoryLaterVideoResponseData(BaseModel):
+        class LaterItem(BaseModel):
+            aid: int
+            videos: int  # 分P总数
+            tid: int  # 分区
+            tname: str  # 分区名
+            copyright: VideoCopyright
+            pic: str  # 封面
+            title: str  # 标题
+            desc: str  # 简介
+            state: VideoState
+            duration: timedelta
+            rights: Rights
+            owner: Owner
+            stat: Stat
+            dynamic: str  # 同步动态内容
+            dimension: Dimension
+            count: int = None  # 分P数
+            cid: int  # cid
+            progress: timedelta  # 观看进度
+            bvid: str
+
+        count: int
+        list: List[LaterItem]
+
+    data: HistoryLaterVideoResponseData = None
