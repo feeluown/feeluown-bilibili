@@ -151,6 +151,9 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
 
     def playlist_get(self, identifier: str) -> BPlaylistModel:
         # fixme: fuo should support playlist_get v2 first
+        if identifier == 'LATER':
+            resp = self._api.history_later_videos()
+            return BPlaylistModel.special_model(identifier, resp)
         fav_type, id_ = identifier.split('_')
         if int(fav_type) == 21:
             resp = self._api.favorite_season_resource(FavoriteSeasonResourceRequest(season_id=int(id_), ps=0))
@@ -160,25 +163,35 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
 
     def playlist_create_songs_rd(self, playlist):
         def g():
-            fav_type, id_ = playlist.identifier.split('_')
-            is_season = int(fav_type) == 21
-            page = 1
-            while page <= math.ceil(playlist.count / 20):
-                if is_season:
-                    response = self._api.favorite_season_resource(FavoriteSeasonResourceRequest(
-                        season_id=int(id_),
-                        pn=page,
-                    ))
-                else:
-                    response = self._api.favorite_resource(FavoriteResourceRequest(
-                        media_id=int(id_),
-                        pn=page,
-                    ))
-                for m in response.data.medias:
-                    yield BSongModel.create_brief_model(m)
-                page += 1
+            if playlist.identifier == 'LATER':
+                response = self._api.history_later_videos()
+                song_list = BSongModel.create_history_brief_model_list(response)
+                for s in song_list:
+                    yield s
+            else:
+                fav_type, id_ = playlist.identifier.split('_')
+                is_season = int(fav_type) == 21
+                page = 1
+                while page <= math.ceil(playlist.count / 20):
+                    if is_season:
+                        response = self._api.favorite_season_resource(FavoriteSeasonResourceRequest(
+                            season_id=int(id_),
+                            pn=page,
+                        ))
+                    else:
+                        response = self._api.favorite_resource(FavoriteResourceRequest(
+                            media_id=int(id_),
+                            pn=page,
+                        ))
+                    for m in response.data.medias:
+                        yield BSongModel.create_brief_model(m)
+                    page += 1
 
         return SequentialReader(g(), playlist.count)
+
+    @staticmethod
+    def special_playlists() -> List[BriefPlaylistModel]:
+        return BPlaylistModel.special_brief_playlists()
 
     def history_later_videos(self) -> List[BriefSongModel]:
         resp = self._api.history_later_videos()

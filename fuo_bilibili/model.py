@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, Union, Optional
 
 from bs4 import BeautifulSoup
 from feeluown.library import SongModel, BriefArtistModel, PlaylistModel, BriefPlaylistModel, BriefUserModel, \
@@ -108,6 +108,31 @@ class BPlaylistModel(PlaylistModel):
             creator_name='',
             name=fav.title,
         )
+
+    @classmethod
+    def special_brief_playlists(cls):
+        return [
+            BriefPlaylistModel(
+                source=PROVIDER_ID,
+                identifier=f'LATER',
+                creator_name='',
+                name='稍后再看',
+            )
+        ]
+
+    @classmethod
+    def special_model(cls, identifier, resp: Optional[HistoryLaterVideoResponse]):
+        match identifier:
+            case 'LATER':
+                return cls(
+                    source=PROVIDER_ID,
+                    identifier=f'LATER',
+                    creator=None,
+                    name='稍后再看',
+                    cover='',
+                    description='稍后再看',
+                    count=resp.data.count if resp is not None else None,
+                )
 
     @classmethod
     def create_info_model(cls, response: Union[FavoriteInfoResponse, FavoriteSeasonResourceResponse]):

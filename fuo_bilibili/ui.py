@@ -1,11 +1,9 @@
 import asyncio
-import base64
 import logging
 from pathlib import Path
 from typing import Optional
 
-from PyQt5.QtCore import Qt, pyqtSignal, QUrl
-from PyQt5.QtGui import QDesktopServices
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QDialog, QLineEdit, QVBoxLayout, QPushButton, QLabel, QFrame, QTabWidget, QMessageBox
 from feeluown.app.gui_app import GuiApp
 from feeluown.gui import ProviderUiManager
@@ -14,7 +12,6 @@ from feeluown.library import UserModel
 from fuo_bilibili import __identifier__, __alias__, BilibiliProvider
 from fuo_bilibili.api.schema.requests import PasswordLoginRequest, SendSmsCodeRequest, SmsCodeLoginRequest
 from fuo_bilibili.api.schema.responses import RequestLoginKeyResponse
-from fuo_bilibili.const import PLUGIN_API_COOKIEJAR_FILE
 from fuo_bilibili.util import rsa_encrypt
 
 logger = logging.getLogger(__name__)
@@ -252,30 +249,18 @@ class BUiManager:
         self._pvd_item.clicked.connect(self._login_or_get_user)
         self._pvd_uimgr.add_item(self._pvd_item)
         self.login_dialog = BLoginDialog(None, self._provider)
-        self.initialize()
-
-    def initialize(self):
-        from fuo_bilibili.pages.later import render as later
-        self._app.browser.route('/providers/bilibili/later')(later)
 
     async def load_user_content(self):
         left = self._app.ui.left_panel
         left.playlists_con.show()
-        left.my_music_con.show()
         # 歌单列表
+        special_playlists = self._provider.special_playlists()
         playlists = self._provider.user_playlists(self._user.identifier)
         fav_playlists = self._provider.fav_playlists(self._user.identifier)
         self._app.pl_uimgr.clear()
+        self._app.pl_uimgr.add(special_playlists)
         self._app.pl_uimgr.add(playlists)
         self._app.pl_uimgr.add(fav_playlists, is_fav=True)
-        # 观看历史
-        mymusic_later_item = self._app.mymusic_uimgr.create_item('🕒 观看历史')
-        mymusic_later_item.clicked.connect(
-            lambda: self._app.browser.goto(page='/providers/bilibili/later'),
-            weak=False
-        )
-        self._app.mymusic_uimgr.clear()
-        self._app.mymusic_uimgr.add_item(mymusic_later_item)
 
     def _login(self):
         self._user = self._provider.auth(None)
