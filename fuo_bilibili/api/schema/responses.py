@@ -487,3 +487,32 @@ class HistoryLaterVideoResponse(BaseResponse):
         list: List[LaterItem]
 
     data: HistoryLaterVideoResponseData = None
+
+
+class HistoryVideoResponse(BaseResponse):
+    class HistoryVideoResponseData(BaseModel):
+        aid: int
+        videos: int  # 分P总数
+        tid: int  # 分区
+        tname: str  # 分区名
+        copyright: VideoCopyright
+        pic: str  # 封面
+        title: str  # 标题
+        desc: str  # 简介
+        state: VideoState
+        duration: timedelta
+        rights: Rights
+        owner: Owner
+        stat: Stat
+        dynamic: str  # 同步动态内容
+        dimension: Dimension
+        cid: int  # cid
+        favorite: bool
+        type: int
+        sub_type: int
+        device: int
+        count: int = None  # 分P数
+        progress: timedelta  # 观看进度
+        bvid: str
+
+    data: List[HistoryVideoResponseData] = None

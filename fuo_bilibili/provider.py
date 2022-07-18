@@ -14,7 +14,7 @@ from fuo_bilibili.api import BilibiliApi, SearchRequest, SearchType as BilibiliS
 from fuo_bilibili.api.schema.enums import VideoFnval
 from fuo_bilibili.api.schema.requests import PasswordLoginRequest, SendSmsCodeRequest, SmsCodeLoginRequest, \
     FavoriteListRequest, FavoriteInfoRequest, FavoriteResourceRequest, CollectedFavoriteListRequest, \
-    FavoriteSeasonResourceRequest
+    FavoriteSeasonResourceRequest, PaginatedRequest
 from fuo_bilibili.api.schema.responses import RequestCaptchaResponse, RequestLoginKeyResponse, PasswordLoginResponse, \
     SendSmsCodeResponse, SmsCodeLoginResponse, NavInfoResponse
 from fuo_bilibili.model import BSearchModel, BSongModel, BPlaylistModel
@@ -154,6 +154,8 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
         if identifier == 'LATER':
             resp = self._api.history_later_videos()
             return BPlaylistModel.special_model(identifier, resp)
+        if identifier == 'HISTORY':
+            return BPlaylistModel.special_model(identifier, None)
         fav_type, id_ = identifier.split('_')
         if int(fav_type) == 21:
             resp = self._api.favorite_season_resource(FavoriteSeasonResourceRequest(season_id=int(id_), ps=0))
@@ -169,22 +171,30 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
                 for s in song_list:
                     yield s
             else:
-                fav_type, id_ = playlist.identifier.split('_')
-                is_season = int(fav_type) == 21
+                is_season = False
+                id_ = None
+                if playlist.identifier != 'HISTORY':
+                    fav_type, id_ = playlist.identifier.split('_')
+                    is_season = int(fav_type) == 21
                 page = 1
                 while page <= math.ceil(playlist.count / 20):
-                    if is_season:
-                        response = self._api.favorite_season_resource(FavoriteSeasonResourceRequest(
-                            season_id=int(id_),
-                            pn=page,
-                        ))
+                    if playlist.identifier == 'HISTORY':
+                        response = self._api.history_videos(PaginatedRequest(pn=page))
+                        for m in response.data:
+                            yield BSongModel.create_history_brief_model(m)
                     else:
-                        response = self._api.favorite_resource(FavoriteResourceRequest(
-                            media_id=int(id_),
-                            pn=page,
-                        ))
-                    for m in response.data.medias:
-                        yield BSongModel.create_brief_model(m)
+                        if is_season:
+                            response = self._api.favorite_season_resource(FavoriteSeasonResourceRequest(
+                                season_id=int(id_),
+                                pn=page,
+                            ))
+                        else:
+                            response = self._api.favorite_resource(FavoriteResourceRequest(
+                                media_id=int(id_),
+                                pn=page,
+                            ))
+                        for m in response.data.medias:
+                            yield BSongModel.create_brief_model(m)
                     page += 1
 
         return SequentialReader(g(), playlist.count)
@@ -192,10 +202,6 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
     @staticmethod
     def special_playlists() -> List[BriefPlaylistModel]:
         return BPlaylistModel.special_brief_playlists()
-
-    def history_later_videos(self) -> List[BriefSongModel]:
-        resp = self._api.history_later_videos()
-        return BSongModel.create_history_brief_model_list(resp)
 
     @property
     def identifier(self):

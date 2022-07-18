@@ -61,16 +61,18 @@ class BSongModel(SongModel):
         )
 
     @classmethod
+    def create_history_brief_model(cls, media):
+        return BriefSongModel(
+            source=__identifier__,
+            identifier=media.bvid,
+            title=media.title,
+            artists_name=media.owner.name,
+            duration_ms=str(media.duration).lstrip('0:')
+        )
+
+    @classmethod
     def create_history_brief_model_list(cls, resp: HistoryLaterVideoResponse) -> List[BriefSongModel]:
-        return [
-            BriefSongModel(
-                source=__identifier__,
-                identifier=media.bvid,
-                title=media.title,
-                artists_name=media.owner.name,
-                duration_ms=str(media.duration).lstrip('0:')
-            )
-            for media in resp.data.list]
+        return [cls.create_history_brief_model(media) for media in resp.data.list]
 
 
 class BSearchModel(SearchModel):
@@ -117,7 +119,13 @@ class BPlaylistModel(PlaylistModel):
                 identifier=f'LATER',
                 creator_name='',
                 name='稍后再看',
-            )
+            ),
+            BriefPlaylistModel(
+                source=PROVIDER_ID,
+                identifier=f'HISTORY',
+                creator_name='',
+                name='历史记录',
+            ),
         ]
 
     @classmethod
@@ -132,6 +140,16 @@ class BPlaylistModel(PlaylistModel):
                     cover='',
                     description='稍后再看',
                     count=resp.data.count if resp is not None else None,
+                )
+            case 'HISTORY':
+                return cls(
+                    source=PROVIDER_ID,
+                    identifier=f'HISTORY',
+                    creator=None,
+                    name='历史纪录',
+                    cover='',
+                    description='历史纪录',
+                    count=1000,
                 )
 
     @classmethod
