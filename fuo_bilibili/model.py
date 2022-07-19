@@ -10,13 +10,25 @@ from fuo_bilibili.api import SearchType
 from fuo_bilibili.api.schema.requests import SearchRequest
 from fuo_bilibili.api.schema.responses import SearchResponse, SearchResultVideo, VideoInfoResponse, \
     FavoriteListResponse, FavoriteInfoResponse, FavoriteResourceResponse, CollectedFavoriteListResponse, \
-    FavoriteSeasonResourceResponse, HistoryLaterVideoResponse
+    FavoriteSeasonResourceResponse, HistoryLaterVideoResponse, HomeDynamicVideoResponse
 
 PROVIDER_ID = __identifier__
 
 
 class BSongModel(SongModel):
     source: str = PROVIDER_ID
+
+    @classmethod
+    def create_dynamic_brief_model(cls, item: HomeDynamicVideoResponse.HomeDynamicVideoResponseData.DynamicVideoItem):
+        media = item.modules.module_dynamic.major.archive
+        author = item.modules.module_author
+        return BriefSongModel(
+            source=__identifier__,
+            identifier=media.bvid,
+            title=media.title,
+            artists_name=author.name,
+            duration_ms=media.duration_text,
+        )
 
     @classmethod
     def create_brief_model(cls, media: FavoriteResourceResponse.FavoriteResourceResponseData.Media) -> BriefSongModel:
@@ -116,6 +128,12 @@ class BPlaylistModel(PlaylistModel):
         return [
             BriefPlaylistModel(
                 source=PROVIDER_ID,
+                identifier=f'DYNAMIC',
+                creator_name='',
+                name='动态视频',
+            ),
+            BriefPlaylistModel(
+                source=PROVIDER_ID,
                 identifier=f'LATER',
                 creator_name='',
                 name='稍后再看',
@@ -131,6 +149,16 @@ class BPlaylistModel(PlaylistModel):
     @classmethod
     def special_model(cls, identifier, resp: Optional[HistoryLaterVideoResponse]):
         match identifier:
+            case 'DYNAMIC':
+                return cls(
+                    source=PROVIDER_ID,
+                    identifier=f'DYNAMIC',
+                    creator=None,
+                    name='动态视频',
+                    cover='',
+                    description='动态视频',
+                    count=1000,
+                )
             case 'LATER':
                 return cls(
                     source=PROVIDER_ID,

@@ -14,7 +14,7 @@ from fuo_bilibili.api import BilibiliApi, SearchRequest, SearchType as BilibiliS
 from fuo_bilibili.api.schema.enums import VideoFnval
 from fuo_bilibili.api.schema.requests import PasswordLoginRequest, SendSmsCodeRequest, SmsCodeLoginRequest, \
     FavoriteListRequest, FavoriteInfoRequest, FavoriteResourceRequest, CollectedFavoriteListRequest, \
-    FavoriteSeasonResourceRequest, PaginatedRequest
+    FavoriteSeasonResourceRequest, PaginatedRequest, HomeRecommendVideosRequest, HomeDynamicVideoRequest
 from fuo_bilibili.api.schema.responses import RequestCaptchaResponse, RequestLoginKeyResponse, PasswordLoginResponse, \
     SendSmsCodeResponse, SmsCodeLoginResponse, NavInfoResponse
 from fuo_bilibili.model import BSearchModel, BSongModel, BPlaylistModel
@@ -41,6 +41,7 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
         super(BilibiliProvider, self).__init__()
         self._api = BilibiliApi()
         self._user = None
+        self._dynamic_offset = None
 
     def _format_search_request(self, keyword, type_) -> SearchRequest:
         btype = SEARCH_TYPE_MAP.get(type_)
@@ -149,12 +150,16 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
         resp = self._api.collected_favorite_list(CollectedFavoriteListRequest(up_mid=int(identifier), ps=40))
         return BPlaylistModel.create_model_list(resp)
 
+    def home_recommend_videos(self, idx) -> List[BriefSongModel]:
+        resp = self._api.home_recommend_videos(HomeRecommendVideosRequest(ps=10, fresh_idx=idx, fresh_idx_1h=idx))
+        return [BSongModel.create_history_brief_model(v) for v in resp.data.item]
+
     def playlist_get(self, identifier: str) -> BPlaylistModel:
         # fixme: fuo should support playlist_get v2 first
         if identifier == 'LATER':
             resp = self._api.history_later_videos()
             return BPlaylistModel.special_model(identifier, resp)
-        if identifier == 'HISTORY':
+        if identifier in ['HISTORY', 'DYNAMIC']:
             return BPlaylistModel.special_model(identifier, None)
         fav_type, id_ = identifier.split('_')
         if int(fav_type) == 21:
@@ -173,12 +178,19 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
             else:
                 is_season = False
                 id_ = None
-                if playlist.identifier != 'HISTORY':
+                if playlist.identifier not in ['HISTORY', 'DYNAMIC']:
                     fav_type, id_ = playlist.identifier.split('_')
                     is_season = int(fav_type) == 21
                 page = 1
                 while page <= math.ceil(playlist.count / 20):
-                    if playlist.identifier == 'HISTORY':
+                    if playlist.identifier == 'DYNAMIC':
+                        resp = self._api.home_dynamic_videos(HomeDynamicVideoRequest(offset=self._dynamic_offset, page=page))
+                        self._dynamic_offset = resp.data.offset
+                        for v in resp.data.items:
+                            yield BSongModel.create_dynamic_brief_model(v)
+                        if not resp.data.has_more:
+                            return
+                    elif playlist.identifier == 'HISTORY':
                         response = self._api.history_videos(PaginatedRequest(pn=page))
                         for m in response.data:
                             yield BSongModel.create_history_brief_model(m)

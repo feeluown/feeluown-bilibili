@@ -17,7 +17,7 @@ from fuo_bilibili.api.schema.responses import BaseResponse
 from fuo_bilibili.api.video import VideoMixin
 from fuo_bilibili.const import PLUGIN_API_COOKIEJAR_FILE
 
-CACHE = LRUCache(10)
+CACHE = LRUCache(30)
 
 
 class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin):

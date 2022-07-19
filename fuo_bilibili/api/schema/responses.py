@@ -42,17 +42,17 @@ class Owner(BaseModel):
 
 
 class Stat(BaseModel):
-    aid: int  # AV号
+    aid: int = None  # AV号
     view: int  # 播放量
     danmaku: int  # 弹幕量
-    reply: int  # 评论量
-    favorite: int  # 收藏量
-    coin: int  # 投币量
-    share: int  # 分享量
-    now_rank: int  # 当前排名
-    his_rank: int  # 历史最高排名
+    reply: int = None  # 评论量
+    favorite: int = None  # 收藏量
+    coin: int = None  # 投币量
+    share: int = None  # 分享量
+    now_rank: int = None  # 当前排名
+    his_rank: int = None  # 历史最高排名
     like: int  # 点赞量
-    dislike: int  # 点踩量
+    dislike: int = None  # 点踩量
     evaluation: str = None  # 视频评分
     argue_msg: str = None  # 警告提示信息
 
@@ -516,3 +516,54 @@ class HistoryVideoResponse(BaseResponse):
         bvid: str
 
     data: List[HistoryVideoResponseData] = None
+
+
+class HomeRecommendVideosResponse(BaseResponse):
+    class HomeRecommendVideosResponseData(BaseModel):
+        class Video(BaseModel):
+            bvid: str
+            cid: int
+            duration: timedelta
+            id: int
+            is_followed: bool
+            owner: Owner
+            pic: str
+            rcmd_reason: dict = None
+            stat: Stat
+            title: str
+            uri: str
+
+        item: List[Video]
+
+    data: HomeRecommendVideosResponseData = None
+
+
+class HomeDynamicVideoResponse(BaseResponse):
+    class HomeDynamicVideoResponseData(BaseModel):
+        class DynamicVideoItem(BaseModel):
+            class Modules(BaseModel):
+                class ModuleDynamic(BaseModel):
+                    class Major(BaseModel):
+                        class Archive(BaseModel):
+                            aid: int
+                            bvid: str
+                            cover: str
+                            desc: str
+                            duration_text: str
+                            title: str
+                        archive: Archive
+                    major: Major
+
+                class ModuleAuthor(BaseModel):
+                    mid: int
+                    name: str
+                    face: str
+
+                module_dynamic: ModuleDynamic
+                module_author: ModuleAuthor
+            modules: Modules
+        has_more: bool
+        offset: str
+        items: List[DynamicVideoItem]
+
+    data: HomeDynamicVideoResponseData = None

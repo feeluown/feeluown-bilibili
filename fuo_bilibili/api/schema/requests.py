@@ -97,3 +97,18 @@ class FavoriteResourceRequest(PaginatedRequest):
 
 class FavoriteSeasonResourceRequest(PaginatedRequest):
     season_id: int  # 合集ID
+
+
+class HomeRecommendVideosRequest(PaginatedRequest):
+    refresh_type: int = 3
+    version: int = 1
+    fresh_idx: int = 2
+    fresh_idx_1h: int = 2
+    homepage_ver: int = 1
+
+
+class HomeDynamicVideoRequest(BaseRequest):
+    timezone_offset: int = -480
+    type: str = 'video'
+    offset: str = None
+    page: int = 1

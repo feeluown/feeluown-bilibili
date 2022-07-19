@@ -249,10 +249,23 @@ class BUiManager:
         self._pvd_item.clicked.connect(self._login_or_get_user)
         self._pvd_uimgr.add_item(self._pvd_item)
         self.login_dialog = BLoginDialog(None, self._provider)
+        self._initial_pages()
+
+    def _initial_pages(self):
+        from fuo_bilibili.page_home import render as home_render
+        self._app.browser.route('/providers/bilibili/home')(home_render)
 
     async def load_user_content(self):
         left = self._app.ui.left_panel
         left.playlists_con.show()
+        left.my_music_con.show()
+        # 音乐
+        mymusic_home_item = self._app.mymusic_uimgr.create_item('📺 我的首页')
+        mymusic_home_item.clicked.connect(
+            lambda: self._app.browser.goto(page='/providers/bilibili/home'),
+            weak=False)
+        self._app.mymusic_uimgr.clear()
+        self._app.mymusic_uimgr.add_item(mymusic_home_item)
         # 歌单列表
         special_playlists = self._provider.special_playlists()
         playlists = self._provider.user_playlists(self._user.identifier)
