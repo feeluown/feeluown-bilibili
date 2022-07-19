@@ -41,7 +41,6 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
         super(BilibiliProvider, self).__init__()
         self._api = BilibiliApi()
         self._user = None
-        self._dynamic_offset = None
 
     def _format_search_request(self, keyword, type_) -> SearchRequest:
         btype = SEARCH_TYPE_MAP.get(type_)
@@ -170,6 +169,8 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
 
     def playlist_create_songs_rd(self, playlist):
         def g():
+            _dynamic_offset = None
+
             if playlist.identifier == 'LATER':
                 response = self._api.history_later_videos()
                 song_list = BSongModel.create_history_brief_model_list(response)
@@ -184,8 +185,8 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
                 page = 1
                 while page <= math.ceil(playlist.count / 20):
                     if playlist.identifier == 'DYNAMIC':
-                        resp = self._api.home_dynamic_videos(HomeDynamicVideoRequest(offset=self._dynamic_offset, page=page))
-                        self._dynamic_offset = resp.data.offset
+                        resp = self._api.home_dynamic_videos(HomeDynamicVideoRequest(offset=_dynamic_offset, page=page))
+                        _dynamic_offset = resp.data.offset
                         for v in resp.data.items:
                             yield BSongModel.create_dynamic_brief_model(v)
                         if not resp.data.has_more:
