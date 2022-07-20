@@ -14,13 +14,14 @@ from fuo_bilibili.api.schema.enums import VideoQualityNum, SearchType
 from fuo_bilibili.api.schema.requests import BaseRequest, VideoInfoRequest, PlayUrlRequest, SearchRequest, \
     FavoriteListRequest
 from fuo_bilibili.api.schema.responses import BaseResponse
+from fuo_bilibili.api.user import UserMixin
 from fuo_bilibili.api.video import VideoMixin
 from fuo_bilibili.const import PLUGIN_API_COOKIEJAR_FILE
 
 CACHE = LRUCache(30)
 
 
-class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin):
+class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin, UserMixin):
     def __init__(self):
         self._cookie = MozillaCookieJar(PLUGIN_API_COOKIEJAR_FILE)
         self._session = requests.Session()
@@ -39,14 +40,15 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
         print('dumping cookies to file')
         self._cookie.save()
 
-    def get_uncached(self, url: str, param: Optional[BaseRequest], clazz: Union[Type[BaseResponse], Type[BaseModel], None]) \
+    def get_uncached(self, url: str, param: Optional[BaseRequest], clazz: Union[Type[BaseResponse], Type[BaseModel], None], **kwargs) \
             -> Union[BaseResponse, BaseModel, None]:
         print(f'Requesting: {url}...')
         if param is None:
-            r = self._session.get(url)
+            r = self._session.get(url, **kwargs)
         else:
-            r = self._session.get(url, params=json.loads(param.json(exclude_none=True)))
+            r = self._session.get(url, params=json.loads(param.json(exclude_none=True)), **kwargs)
         if r.status_code != 200:
+            print(r.text)
             raise RuntimeError('http not 200')
         if clazz is None:
             return None
@@ -57,9 +59,9 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
         return res
 
     @cached(CACHE)
-    def get(self, url: str, param: Optional[BaseRequest], clazz: Union[Type[BaseResponse], Type[BaseModel], None])\
+    def get(self, url: str, param: Optional[BaseRequest], clazz: Union[Type[BaseResponse], Type[BaseModel], None], **kwargs)\
             -> Union[BaseResponse, BaseModel, None]:
-        return self.get_uncached(url, param, clazz)
+        return self.get_uncached(url, param, clazz, **kwargs)
 
     def post(self, url: str, param: Optional[BaseRequest], clazz: Type[BaseResponse], is_json=False, **kwargs)\
             -> BaseResponse:

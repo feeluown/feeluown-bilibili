@@ -112,3 +112,18 @@ class HomeDynamicVideoRequest(BaseRequest):
     type: str = 'video'
     offset: str = None
     page: int = 1
+
+
+class UserInfoRequest(BaseRequest):
+    mid: int  # 用户UID
+
+
+class UserBestVideoRequest(BaseRequest):
+    vmid: int
+
+
+class UserVideoRequest(PaginatedRequest):
+    mid: int
+    order: str = None
+    tid: int = None
+    keyword: str = None

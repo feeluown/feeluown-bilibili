@@ -14,10 +14,11 @@ from fuo_bilibili.api import BilibiliApi, SearchRequest, SearchType as BilibiliS
 from fuo_bilibili.api.schema.enums import VideoFnval
 from fuo_bilibili.api.schema.requests import PasswordLoginRequest, SendSmsCodeRequest, SmsCodeLoginRequest, \
     FavoriteListRequest, FavoriteInfoRequest, FavoriteResourceRequest, CollectedFavoriteListRequest, \
-    FavoriteSeasonResourceRequest, PaginatedRequest, HomeRecommendVideosRequest, HomeDynamicVideoRequest
+    FavoriteSeasonResourceRequest, PaginatedRequest, HomeRecommendVideosRequest, HomeDynamicVideoRequest, \
+    UserInfoRequest, UserBestVideoRequest, UserVideoRequest
 from fuo_bilibili.api.schema.responses import RequestCaptchaResponse, RequestLoginKeyResponse, PasswordLoginResponse, \
     SendSmsCodeResponse, SmsCodeLoginResponse, NavInfoResponse
-from fuo_bilibili.model import BSearchModel, BSongModel, BPlaylistModel
+from fuo_bilibili.model import BSearchModel, BSongModel, BPlaylistModel, BArtistModel
 
 SEARCH_TYPE_MAP = {
     FuoSearchType.vi: BilibiliSearchType.VIDEO,
@@ -35,6 +36,7 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
             ModelType.song: (Pf.model_v2 | Pf.get | Pf.multi_quality | Pf.lyric | Pf.mv),
             ModelType.video: (Pf.model_v2 | Pf.multi_quality | Pf.get),
             ModelType.playlist: (Pf.model_v2 | Pf.get | Pf.songs_rd),
+            ModelType.artist: (Pf.model_v2 | Pf.get | Pf.songs_rd),
         }
 
     def __init__(self):
@@ -215,6 +217,25 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
     @staticmethod
     def special_playlists() -> List[BriefPlaylistModel]:
         return BPlaylistModel.special_brief_playlists()
+
+    def artist_get(self, identifier) -> BArtistModel:
+        resp = self._api.user_info(UserInfoRequest(mid=identifier))
+        video_resp = self._api.user_best_videos(UserBestVideoRequest(vmid=identifier))
+        return BArtistModel.create_model(resp, video_resp)
+
+    def artist_create_songs_rd(self, artist):
+        resp = self._api.user_videos(UserVideoRequest(mid=artist.identifier, ps=1, pn=1))
+        total = resp.data.page.count
+
+        def g():
+            page = 1
+            while page <= math.ceil(total / 20):
+                response = self._api.user_videos(UserVideoRequest(mid=artist.identifier, ps=20, pn=page))
+                for m in response.data.list.vlist:
+                    yield BSongModel.create_user_brief_model(m)
+                page += 1
+
+        return SequentialReader(g(), total)
 
     @property
     def identifier(self):

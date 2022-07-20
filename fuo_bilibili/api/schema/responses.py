@@ -567,3 +567,82 @@ class HomeDynamicVideoResponse(BaseResponse):
         items: List[DynamicVideoItem]
 
     data: HomeDynamicVideoResponseData = None
+
+
+class UserInfoResponse(BaseResponse):
+    class UserInfoResponseData(BaseModel):
+        class FansMedal(BaseModel):
+            class Medal(BaseModel):
+                target_id: int  # 勋章对应UP的UID
+                medal_name: str  # 粉丝勋章名称
+                level: int  # 等级
+                medal_color: int
+
+            show: bool
+            wear: bool
+            medal: Medal = None
+
+        mid: int
+        name: str
+        sex: str
+        face: str
+        face_nft: bool
+        sign: str
+        rank: int = None
+        level: int
+        silence: bool
+        fans_badge: bool
+        fans_medal: FansMedal
+        is_followed: bool
+        top_photo: str  # 头图
+
+    data: UserInfoResponseData = None
+
+
+class UserBestVideoResponse(BaseResponse):
+    class BestVideo(BaseModel):
+        aid: int
+        videos: int
+        tid: int
+        tname: str
+        copyright: VideoCopyright
+        pic: str
+        title: str
+        desc: str
+        state: VideoState
+        duration: timedelta
+        owner: Owner
+        dynamic: str
+        stat: Stat
+        cid: int
+        bvid: str
+        dimension: Dimension
+        reason: str
+        inter_video: bool
+
+    data: List[BestVideo]
+
+
+class UserVideoResponse(BaseResponse):
+    class UserVideoResponseData(BaseModel):
+        class RList(BaseModel):
+            class Video(BaseModel):
+                aid: int
+                bvid: str
+                author: str
+                description: str
+                length: str  # MM:SS
+                mid: int
+                title: str
+                pic: str
+
+            tlist: dict
+            vlist: List[Video]
+
+        class Page(BaseModel):
+            count: int
+
+        list: RList
+        page: Page
+
+    data: UserVideoResponseData = None

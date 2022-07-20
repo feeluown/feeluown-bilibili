@@ -2,7 +2,7 @@ from typing import List, Union, Optional
 
 from bs4 import BeautifulSoup
 from feeluown.library import SongModel, BriefArtistModel, PlaylistModel, BriefPlaylistModel, BriefUserModel, \
-    BriefSongModel
+    BriefSongModel, ArtistModel
 from feeluown.models import SearchModel, ModelExistence
 
 from fuo_bilibili import __identifier__
@@ -10,13 +10,39 @@ from fuo_bilibili.api import SearchType
 from fuo_bilibili.api.schema.requests import SearchRequest
 from fuo_bilibili.api.schema.responses import SearchResponse, SearchResultVideo, VideoInfoResponse, \
     FavoriteListResponse, FavoriteInfoResponse, FavoriteResourceResponse, CollectedFavoriteListResponse, \
-    FavoriteSeasonResourceResponse, HistoryLaterVideoResponse, HomeDynamicVideoResponse
+    FavoriteSeasonResourceResponse, HistoryLaterVideoResponse, HomeDynamicVideoResponse, UserInfoResponse, \
+    UserBestVideoResponse, UserVideoResponse
 
 PROVIDER_ID = __identifier__
 
 
 class BSongModel(SongModel):
     source: str = PROVIDER_ID
+
+    @classmethod
+    def create_user_brief_model(cls, media: UserVideoResponse.UserVideoResponseData.RList.Video):
+        return BriefSongModel(
+            source=__identifier__,
+            identifier=media.bvid,
+            title=media.title,
+            artists_name=media.author,
+            duration_ms=media.length
+        )
+
+    @classmethod
+    def create_hot_model(cls, item: UserBestVideoResponse.BestVideo):
+        return cls(
+            source=__identifier__,
+            identifier=item.bvid,
+            album=None,
+            title=BeautifulSoup(item.title).get_text(),
+            artists=[BriefArtistModel(
+                source=PROVIDER_ID,
+                identifier=item.owner.mid,
+                name=item.owner.name,
+            )],
+            duration=item.duration.total_seconds() * 1000,
+        )
 
     @classmethod
     def create_dynamic_brief_model(cls, item: HomeDynamicVideoResponse.HomeDynamicVideoResponseData.DynamicVideoItem):
@@ -214,3 +240,23 @@ class BPlaylistModel(PlaylistModel):
     @classmethod
     def create_model_list(cls, response: Union[FavoriteListResponse, CollectedFavoriteListResponse]):
         return [cls.create_brief_model(f) for f in response.data.list]
+
+
+class BArtistModel(ArtistModel):
+    PROVIDER_ID = __identifier__
+
+    @classmethod
+    def create_model(cls, resp: UserInfoResponse, video_resp: UserBestVideoResponse) -> 'BArtistModel':
+        alias = []
+        if resp.data.fans_badge and resp.data.fans_medal.show and resp.data.fans_medal.wear \
+                and resp.data.fans_medal.medal is not None:
+            alias.append(f'Lv{resp.data.fans_medal.medal.level} {resp.data.fans_medal.medal.medal_name}')
+        return cls(
+            source=PROVIDER_ID,
+            identifier=resp.data.mid,
+            name=resp.data.name,
+            pic_url=resp.data.face,
+            aliases=alias,
+            hot_songs=[BSongModel.create_hot_model(v) for v in video_resp.data],
+            description=resp.data.sign
+        )
