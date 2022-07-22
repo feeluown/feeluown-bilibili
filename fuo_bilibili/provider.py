@@ -17,7 +17,7 @@ from fuo_bilibili.api.schema.requests import PasswordLoginRequest, SendSmsCodeRe
     FavoriteSeasonResourceRequest, PaginatedRequest, HomeRecommendVideosRequest, HomeDynamicVideoRequest, \
     UserInfoRequest, UserBestVideoRequest, UserVideoRequest
 from fuo_bilibili.api.schema.responses import RequestCaptchaResponse, RequestLoginKeyResponse, PasswordLoginResponse, \
-    SendSmsCodeResponse, SmsCodeLoginResponse, NavInfoResponse
+    SendSmsCodeResponse, SmsCodeLoginResponse, NavInfoResponse, PlayUrlResponse
 from fuo_bilibili.model import BSearchModel, BSongModel, BPlaylistModel, BArtistModel
 
 SEARCH_TYPE_MAP = {
@@ -43,6 +43,8 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
         super(BilibiliProvider, self).__init__()
         self._api = BilibiliApi()
         self._user = None
+        self._video_quality_codes = dict()
+        self._video_cids = dict()
 
     def _format_search_request(self, keyword, type_) -> SearchRequest:
         btype = SEARCH_TYPE_MAP.get(type_)
@@ -104,8 +106,24 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
     def song_get_lyric(self, song) -> None:
         return None
 
+    def _get_video_cid(self, bvid):
+        cid = self._video_cids.get(bvid)
+        if cid is None:
+            info = self._api.video_get_info(VideoInfoRequest(bvid=bvid))
+            self._video_cids[bvid] = info.data.cid
+            cid = info.data.cid
+        return cid
+
     def video_list_quality(self, video) -> List[Quality.Video]:
-        return [Quality.Video.hd]
+        response = self._api.video_get_url(PlayUrlRequest(
+            bvid=video.identifier,
+            cid=self._get_video_cid(video.identifier),
+            fnval=VideoFnval.FLV
+        ))
+        qualities = set([q.get_quality() for q in response.data.accept_quality])
+        self._video_quality_codes[video.identifier] = response.data.accept_quality
+        print(list(qualities))
+        return list(qualities)
 
     def song_get_mv(self, song) -> Optional[VideoModel]:
         song = self.song_get(song.identifier)
@@ -118,29 +136,56 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
             cover=''
         )
 
-    def video_get_media(self, video, quality) -> Optional[Media]:
-        info = self._api.video_get_info(VideoInfoRequest(bvid=video.identifier))
+    def video_get_media(self, video, quality: Quality.Video) -> Optional[Media]:
+        max_quality_code = VideoQualityNum.get_max_from_quality(quality)
+        select_quality = max(filter(lambda c: c.value <= max_quality_code, self._video_quality_codes[video.identifier]),
+                             key=lambda c: c.value)
         response = self._api.video_get_url(PlayUrlRequest(
             bvid=video.identifier,
-            qn=VideoQualityNum.q8k,
-            cid=info.data.cid,
+            qn=VideoQualityNum(select_quality),
+            cid=self._get_video_cid(video.identifier),
             fnval=VideoFnval.FLV
         ))
         return Media(response.data.durl[0].url, format='flv',
                      http_headers={'Referer': 'https://www.bilibili.com/'})
 
     def song_list_quality(self, song) -> List[Quality.Audio]:
-        return [Quality.Audio.lq]
-
-    def song_get_media(self, song, quality) -> Optional[Media]:
-        info = self._api.video_get_info(VideoInfoRequest(bvid=song.identifier))
         response = self._api.video_get_url(PlayUrlRequest(
             bvid=song.identifier,
-            qn=VideoQualityNum.q8k,
-            cid=info.data.cid,
+            cid=self._get_video_cid(song.identifier),
             fnval=VideoFnval.DASH
         ))
-        return Media(response.data.dash.audio[0].base_url, type_=MediaType.audio, format='m4s', bitrate=320,
+        song_bitrates = [a.bandwidth for a in response.data.dash.audio]
+        qualities = []
+        for b in song_bitrates:
+            if b <= 120000:
+                qualities.append(Quality.Audio.lq)
+                continue
+            if b <= 256000:
+                qualities.append(Quality.Audio.sq)
+                continue
+            qualities.append(Quality.Audio.hq)
+        print(list(set(qualities)))
+        return list(set(qualities))
+
+    def song_get_media(self, song, quality: Quality.Audio) -> Optional[Media]:
+        response = self._api.video_get_url(PlayUrlRequest(
+            bvid=song.identifier,
+            cid=self._get_video_cid(song.identifier),
+            fnval=VideoFnval.DASH
+        ))
+        audios = sorted(response.data.dash.audio, key=lambda a: a.bandwidth, reverse=True)
+        selects: Optional[List[PlayUrlResponse.PlayUrlResponseData.Dash.DashItem]] = None
+        match quality:
+            case Quality.Audio.lq:
+                selects = [a.bandwidth <= 120000 for a in audios]
+            case Quality.Audio.sq:
+                selects = [a.bandwidth <= 256000 for a in audios]
+            case Quality.Audio.hq:
+                selects = audios
+        if selects is None or len(selects) == 0:
+            return None
+        return Media(selects[0].base_url, type_=MediaType.audio, format='m4s', bitrate=int(selects[0].bandwidth / 1000),
                      http_headers={'Referer': 'https://www.bilibili.com/'})
 
     def user_playlists(self, identifier) -> List[BriefPlaylistModel]:

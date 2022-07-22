@@ -1,5 +1,7 @@
 from enum import Enum
 
+from feeluown.media import Quality
+
 
 class SearchType(Enum):
     """
@@ -87,6 +89,26 @@ class VideoQualityNum(Enum):
     qhdr = 125  # HDR 真彩色
     qdolby = 126  # 杜比视界
     q8k = 127
+
+    def get_quality(self) -> Quality.Video:
+        if self.value >= 80:
+            return Quality.Video.fhd
+        if self.value >= 64:
+            return Quality.Video.hd
+        if self.value >= 32:
+            return Quality.Video.sd
+        return Quality.Video.ld
+
+    @classmethod
+    def get_max_from_quality(cls, quality: Quality.Video) -> int:
+        match quality:
+            case Quality.Video.fhd:
+                return cls.q8k.value
+            case Quality.Video.hd:
+                return cls.q720p60.value
+            case Quality.Video.sd:
+                return cls.q480.value
+        return cls.q360.value
 
 
 class VideoFnval(Enum):
