@@ -267,13 +267,20 @@ class BUiManager:
         self._app.mymusic_uimgr.clear()
         self._app.mymusic_uimgr.add_item(mymusic_home_item)
         # 歌单列表
+        self._app.pl_uimgr.clear()
+        # 视频区
         special_playlists = self._provider.special_playlists()
         playlists = self._provider.user_playlists(self._user.identifier)
         fav_playlists = self._provider.fav_playlists(self._user.identifier)
-        self._app.pl_uimgr.clear()
         self._app.pl_uimgr.add(special_playlists)
         self._app.pl_uimgr.add(playlists)
         self._app.pl_uimgr.add(fav_playlists, is_fav=True)
+        # 音频区
+        audio_fav_list = self._provider.audio_favorite_playlists()
+        audio_coll_list = self._provider.audio_collected_playlists()
+        print(audio_fav_list, audio_coll_list)
+        self._app.pl_uimgr.add(audio_fav_list)
+        self._app.pl_uimgr.add(audio_coll_list, is_fav=True)
 
     def _login(self):
         self._user = self._provider.auth(None)

@@ -6,13 +6,14 @@ import requests.cookies
 from cachetools import LRUCache, cached
 from pydantic import BaseModel
 
+from fuo_bilibili.api.audio import AudioMixin
 from fuo_bilibili.api.base import BaseMixin
 from fuo_bilibili.api.history import HistoryMixin
 from fuo_bilibili.api.login import LoginMixin
 from fuo_bilibili.api.playlist import PlaylistMixin
 from fuo_bilibili.api.schema.enums import VideoQualityNum, SearchType
 from fuo_bilibili.api.schema.requests import BaseRequest, VideoInfoRequest, PlayUrlRequest, SearchRequest, \
-    FavoriteListRequest
+    FavoriteListRequest, PaginatedRequest, AudioFavoriteSongsRequest
 from fuo_bilibili.api.schema.responses import BaseResponse
 from fuo_bilibili.api.user import UserMixin
 from fuo_bilibili.api.video import VideoMixin
@@ -21,7 +22,7 @@ from fuo_bilibili.const import PLUGIN_API_COOKIEJAR_FILE
 CACHE = LRUCache(30)
 
 
-class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin, UserMixin):
+class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin, UserMixin, AudioMixin):
     def __init__(self):
         self._cookie = MozillaCookieJar(PLUGIN_API_COOKIEJAR_FILE)
         self._session = requests.Session()
@@ -63,6 +64,10 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
             -> Union[BaseResponse, BaseModel, None]:
         return self.get_uncached(url, param, clazz, **kwargs)
 
+    @cached(CACHE)
+    def get_content(self, url: str) -> str:
+        return self._session.get(url).text
+
     def post(self, url: str, param: Optional[BaseRequest], clazz: Type[BaseResponse], is_json=False, **kwargs)\
             -> BaseResponse:
         if param is None:
@@ -91,7 +96,7 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
 def main():
     api = BilibiliApi()
     api.load_cookies()
-    info = api.nav_info()
+    info = api.audio_collected_info(AudioFavoriteSongsRequest(sid=10627))
     print(info)
     api.close()
 

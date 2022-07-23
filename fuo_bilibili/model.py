@@ -11,13 +11,33 @@ from fuo_bilibili.api.schema.requests import SearchRequest
 from fuo_bilibili.api.schema.responses import SearchResponse, SearchResultVideo, VideoInfoResponse, \
     FavoriteListResponse, FavoriteInfoResponse, FavoriteResourceResponse, CollectedFavoriteListResponse, \
     FavoriteSeasonResourceResponse, HistoryLaterVideoResponse, HomeDynamicVideoResponse, UserInfoResponse, \
-    UserBestVideoResponse, UserVideoResponse
+    UserBestVideoResponse, UserVideoResponse, AudioFavoriteSongsResponse, AudioFavoriteListResponse, AudioPlaylist, \
+    AudioPlaylistSong
+from fuo_bilibili.util import format_timedelta_to_hms
 
 PROVIDER_ID = __identifier__
 
 
 class BSongModel(SongModel):
     source: str = PROVIDER_ID
+
+    lyric: str = None
+
+    @classmethod
+    def create_audio_model(cls, au: AudioPlaylistSong) -> Optional['BSongModel']:
+        return cls(
+            source=__identifier__,
+            identifier=f'audio_{au.id}',
+            album=None,
+            title=au.title,
+            artists=[BriefArtistModel(
+                source=PROVIDER_ID,
+                identifier=au.uid,
+                name=au.author,
+            )],
+            duration=au.duration.total_seconds() * 1000,
+            lyric=au.lyric,
+        )
 
     @classmethod
     def create_user_brief_model(cls, media: UserVideoResponse.UserVideoResponseData.RList.Video):
@@ -63,7 +83,7 @@ class BSongModel(SongModel):
             identifier=media.bvid,
             title=media.title,
             artists_name=media.upper.name,
-            duration_ms=str(media.duration).lstrip('0:')
+            duration_ms=format_timedelta_to_hms(media.duration)
         )
 
     @classmethod
@@ -105,7 +125,7 @@ class BSongModel(SongModel):
             identifier=media.bvid,
             title=media.title,
             artists_name=media.owner.name,
-            duration_ms=str(media.duration).lstrip('0:')
+            duration_ms=format_timedelta_to_hms(media.duration)
         )
 
     @classmethod
@@ -137,6 +157,58 @@ class BPlaylistModel(PlaylistModel):
     PROVIDER_ID = __identifier__
 
     count: int
+
+    @classmethod
+    def create_audio_model(cls, p: AudioPlaylist):
+        print(p)
+        identifier = None
+        desc = ''
+        count = 0
+        match p.type:
+            case 1:
+                identifier = f'audio_{p.type}_{p.id}'
+                count = p.song or 0
+                desc = p.desc
+            case 2:
+                identifier = f'audio_{p.type}_{p.menuId}'
+                count = p.snum or 0
+                desc = p.intro
+        if identifier is None:
+            return None
+        return cls(
+            source=PROVIDER_ID,
+            identifier=identifier,
+            creator=BriefUserModel(
+                source=PROVIDER_ID,
+                identifier=p.uid,
+                name=p.uname
+            ),
+            name=f'{p.title} (音频)',
+            cover='',
+            description=desc,
+            count=count,
+        )
+
+    @classmethod
+    def create_audio_brief_model(cls, p: AudioPlaylist):
+        identifier = None
+        match p.type:
+            case 1:
+                identifier = f'audio_{p.type}_{p.id}'
+            case 2:
+                identifier = f'audio_{p.type}_{p.menuId}'
+        if identifier is None:
+            return None
+        return BriefPlaylistModel(
+            source=PROVIDER_ID,
+            identifier=identifier,
+            creator_name=p.uname,
+            name=f'{p.title} (音频)',
+        )
+
+    @classmethod
+    def create_audio_model_list(cls, resp: AudioFavoriteListResponse) -> List[BriefPlaylistModel]:
+        return [cls.create_audio_brief_model(p) for p in resp.data.data]
 
     @classmethod
     def create_brief_model(cls, fav: Union[FavoriteListResponse.FavoriteListResponseData.FavoriteList,

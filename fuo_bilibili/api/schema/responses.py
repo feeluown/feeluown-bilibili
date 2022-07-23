@@ -646,3 +646,71 @@ class UserVideoResponse(BaseResponse):
         page: Page
 
     data: UserVideoResponseData = None
+
+
+class AudioPlaylist(BaseModel):
+    id: int = None  # 音频收藏夹mlid
+    uid: int
+    uname: str
+    title: str
+    type: int
+    published: bool = None  # 是否公开
+    cover: str
+    song: int = None  # 音乐数量
+    snum: int = None  # 音乐数量
+    desc: str = None
+    intro: str = None
+    sids: List[int] = None  # 音频id列表
+    menuId: int  # 对应歌单id
+    statistic: dict
+
+
+class AudioFavoriteListResponse(BaseResponse):
+    class AudioFavoriteListResponseData(BaseModel):
+        curPage: int
+        pageCount: int
+        totalSize: int
+        pageSize: int
+        data: List[AudioPlaylist]
+
+    data: AudioFavoriteListResponseData = None
+
+
+class AudioPlaylistSong(BaseModel):
+    aid: int
+    author: str
+    bvid: str
+    cid: int
+    cover: str
+    duration: timedelta
+    id: int
+    intro: str
+    lyric: str
+    title: str
+    uid: int
+    uname: str
+
+
+class AudioFavoriteSongsResponse(BaseResponse):
+    class AudioFavoriteSongsResponseData(BaseModel):
+        curPage: int
+        pageCount: int
+        totalSize: int
+        pageSize: int
+        data: List[AudioPlaylistSong]
+
+    data: AudioFavoriteSongsResponseData = None
+
+
+class AudioFavoriteInfoResponse(BaseResponse):
+    data: AudioPlaylist = None
+
+
+class AudioGetUrlResponse(BaseResponse):
+    class AudioGetUrlResponseData(BaseModel):
+        cdns: List[str]
+        sid: int
+        size: int
+        type: int
+
+    data: AudioGetUrlResponseData = None

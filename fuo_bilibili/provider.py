@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from feeluown.excs import NoUserLoggedIn
 from feeluown.library import AbstractProvider, ProviderV2, ProviderFlags as Pf, UserModel, VideoModel, \
-    BriefPlaylistModel, BriefSongModel
+    BriefPlaylistModel, BriefSongModel, LyricModel
 from feeluown.media import Quality, Media, MediaType
 from feeluown.models import SearchType as FuoSearchType, ModelType
 from feeluown.utils.reader import SequentialReader
@@ -15,7 +15,7 @@ from fuo_bilibili.api.schema.enums import VideoFnval
 from fuo_bilibili.api.schema.requests import PasswordLoginRequest, SendSmsCodeRequest, SmsCodeLoginRequest, \
     FavoriteListRequest, FavoriteInfoRequest, FavoriteResourceRequest, CollectedFavoriteListRequest, \
     FavoriteSeasonResourceRequest, PaginatedRequest, HomeRecommendVideosRequest, HomeDynamicVideoRequest, \
-    UserInfoRequest, UserBestVideoRequest, UserVideoRequest
+    UserInfoRequest, UserBestVideoRequest, UserVideoRequest, AudioFavoriteSongsRequest, AudioGetUrlRequest
 from fuo_bilibili.api.schema.responses import RequestCaptchaResponse, RequestLoginKeyResponse, PasswordLoginResponse, \
     SendSmsCodeResponse, SmsCodeLoginResponse, NavInfoResponse, PlayUrlResponse
 from fuo_bilibili.model import BSearchModel, BSongModel, BPlaylistModel, BArtistModel
@@ -99,12 +99,20 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
         response = self._api.search(request)
         return BSearchModel.create_model(request, response)
 
-    def song_get(self, identifier) -> BSongModel:
+    def song_get(self, identifier) -> Optional[BSongModel]:
+        if identifier.startswith('audio_'):
+            return None
         response = self._api.video_get_info(VideoInfoRequest(bvid=identifier))
         return BSongModel.create_info_model(response)
 
-    def song_get_lyric(self, song) -> None:
-        return None
+    def song_get_lyric(self, song) -> Optional[LyricModel]:
+        if song.lyric is None or len(song.lyric) == 0:
+            return None
+        return LyricModel(
+            source=__identifier__,
+            identifier=song.identifier,
+            content=self._api.get_content(song.lyric),
+        )
 
     def _get_video_cid(self, bvid):
         cid = self._video_cids.get(bvid)
@@ -122,10 +130,11 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
         ))
         qualities = set([q.get_quality() for q in response.data.accept_quality])
         self._video_quality_codes[video.identifier] = response.data.accept_quality
-        print(list(qualities))
         return list(qualities)
 
     def song_get_mv(self, song) -> Optional[VideoModel]:
+        if song.identifier.startswith('audio_'):
+            return None
         song = self.song_get(song.identifier)
         return VideoModel(
             source=__identifier__,
@@ -150,6 +159,8 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
                      http_headers={'Referer': 'https://www.bilibili.com/'})
 
     def song_list_quality(self, song) -> List[Quality.Audio]:
+        if song.identifier.startswith('audio_'):
+            return [Quality.Audio.hq]
         response = self._api.video_get_url(PlayUrlRequest(
             bvid=song.identifier,
             cid=self._get_video_cid(song.identifier),
@@ -169,6 +180,13 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
         return list(set(qualities))
 
     def song_get_media(self, song, quality: Quality.Audio) -> Optional[Media]:
+        if song.identifier.startswith('audio_'):
+            _, id_ = song.identifier.split('_')
+            resp = self._api.audio_get_url(AudioGetUrlRequest(sid=int(id_)))
+            if len(resp.data.cdns) < 1:
+                return None
+            return Media(resp.data.cdns[0], type_=MediaType.audio, format='m4a',
+                         http_headers={'Referer': 'https://www.bilibili.com/'})
         response = self._api.video_get_url(PlayUrlRequest(
             bvid=song.identifier,
             cid=self._get_video_cid(song.identifier),
@@ -196,12 +214,33 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
         resp = self._api.collected_favorite_list(CollectedFavoriteListRequest(up_mid=int(identifier), ps=40))
         return BPlaylistModel.create_model_list(resp)
 
+    def audio_favorite_playlists(self) -> List[BriefPlaylistModel]:
+        resp = self._api.audio_favorite_list(PaginatedRequest(ps=100, pn=1))
+        return BPlaylistModel.create_audio_model_list(resp)
+
+    def audio_collected_playlists(self) -> List[BriefPlaylistModel]:
+        resp = self._api.audio_collected_list(PaginatedRequest(ps=100, pn=1))
+        return BPlaylistModel.create_audio_model_list(resp)
+
     def home_recommend_videos(self, idx) -> List[BriefSongModel]:
         resp = self._api.home_recommend_videos(HomeRecommendVideosRequest(ps=10, fresh_idx=idx, fresh_idx_1h=idx))
         return [BSongModel.create_history_brief_model(v) for v in resp.data.item]
 
-    def playlist_get(self, identifier: str) -> BPlaylistModel:
+    def audio_playlist_get(self, identifier: str) -> Optional[BPlaylistModel]:
+        _, type_, id_ = identifier.split('_')
+        match int(type_):
+            case 1:
+                resp = self._api.audio_favorite_info(AudioFavoriteSongsRequest(sid=int(id_)))
+                return BPlaylistModel.create_audio_model(resp.data)
+            case 2:
+                resp = self._api.audio_collected_info(AudioFavoriteSongsRequest(sid=int(id_)))
+                return BPlaylistModel.create_audio_model(resp.data)
+        return None
+
+    def playlist_get(self, identifier: str) -> Optional[BPlaylistModel]:
         # fixme: fuo should support playlist_get v2 first
+        if identifier.startswith('audio_'):
+            return self.audio_playlist_get(identifier)
         if identifier == 'LATER':
             resp = self._api.history_later_videos()
             return BPlaylistModel.special_model(identifier, resp)
@@ -214,7 +253,40 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
             resp = self._api.favorite_info(FavoriteInfoRequest(media_id=int(id_)))
         return BPlaylistModel.create_info_model(resp)
 
+    def audio_playlist_create_songs_rd(self, playlist):
+        _, type_, id_ = playlist.identifier.split('_')
+
+        if int(type_) == 2 and playlist.count == 0:
+            # 兼容歌单信息不存在歌曲数量的问题
+            response = self._api.audio_collected_songs(AudioFavoriteSongsRequest(
+                sid=int(id_), pn=1, ps=0
+            ))
+            playlist.count = response.data.totalSize
+
+        def g():
+            page = 1
+            while page <= math.ceil(playlist.count / 20):
+                match int(type_):
+                    case 1:
+                        response = self._api.audio_favorite_songs(AudioFavoriteSongsRequest(
+                            sid=int(id_), pn=page
+                        ))
+                        for au in response.data.data:
+                            yield BSongModel.create_audio_model(au)
+                    case 2:
+                        response = self._api.audio_collected_songs(AudioFavoriteSongsRequest(
+                            sid=int(id_), pn=page
+                        ))
+                        for au in response.data.data:
+                            yield BSongModel.create_audio_model(au)
+                page += 1
+
+        return SequentialReader(g(), playlist.count)
+
     def playlist_create_songs_rd(self, playlist):
+        if playlist.identifier.startswith('audio_'):
+            return self.audio_playlist_create_songs_rd(playlist)
+
         def g():
             _dynamic_offset = None
 

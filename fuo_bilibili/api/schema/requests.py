@@ -127,3 +127,13 @@ class UserVideoRequest(PaginatedRequest):
     order: str = None
     tid: int = None
     keyword: str = None
+
+
+class AudioFavoriteSongsRequest(PaginatedRequest):
+    sid: int  # 音频收藏夹mlid
+
+
+class AudioGetUrlRequest(BaseRequest):
+    sid: int
+    privilege: int = 2
+    quality: int = 2
