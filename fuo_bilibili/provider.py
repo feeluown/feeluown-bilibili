@@ -106,7 +106,7 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
         return BSongModel.create_info_model(response)
 
     def song_get_lyric(self, song) -> Optional[LyricModel]:
-        if song.lyric is None or len(song.lyric) == 0:
+        if not hasattr(song, 'lyric') or song.lyric is None or len(song.lyric) == 0:
             return None
         return LyricModel(
             source=__identifier__,
