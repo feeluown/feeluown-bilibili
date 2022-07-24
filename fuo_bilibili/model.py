@@ -12,7 +12,7 @@ from fuo_bilibili.api.schema.responses import SearchResponse, SearchResultVideo,
     FavoriteListResponse, FavoriteInfoResponse, FavoriteResourceResponse, CollectedFavoriteListResponse, \
     FavoriteSeasonResourceResponse, HistoryLaterVideoResponse, HomeDynamicVideoResponse, UserInfoResponse, \
     UserBestVideoResponse, UserVideoResponse, AudioFavoriteSongsResponse, AudioFavoriteListResponse, AudioPlaylist, \
-    AudioPlaylistSong, VideoHotCommentsResponse
+    AudioPlaylistSong, VideoHotCommentsResponse, SearchResultUser
 from fuo_bilibili.util import format_timedelta_to_hms
 
 PROVIDER_ID = __identifier__
@@ -140,16 +140,28 @@ class BSearchModel(SearchModel):
     q: str
     songs = List[BSongModel]
 
+    @staticmethod
+    def search_user_model(user: SearchResultUser):
+        return BriefArtistModel(
+            source=PROVIDER_ID,
+            identifier=user.mid,
+            name=user.uname,
+        )
+
     @classmethod
     def create_model(cls, request: SearchRequest, response: SearchResponse):
         songs = None
+        artists = None
         match request.search_type:
             case SearchType.VIDEO:
                 songs = list(map(lambda r: BSongModel.create_model(r), response.data.result))
+            case SearchType.BILI_USER:
+                artists = list(map(cls.search_user_model, response.data.result))
         return cls(
             source=PROVIDER_ID,
             q=request.keyword,
-            songs=songs
+            songs=songs,
+            artists=artists
         )
 
 

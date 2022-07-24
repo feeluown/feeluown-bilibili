@@ -78,8 +78,18 @@ class Rights(BaseModel):
     free_watch: bool = None
 
 
+class SearchResultUser(BaseModel):
+    type: SearchType = SearchType.BILI_USER
+    mid: int
+    uname: str
+    usign: str
+    fans: int
+    videos: int
+    upic: str
+
+
 class SearchResultVideo(BaseModel):
-    type: SearchType
+    type: SearchType = SearchType.VIDEO
     id: int  # av号
     author: str  # UPer
     mid: int  # UID
@@ -202,7 +212,7 @@ class SearchResponse(BaseResponse):
         exp_list: dict = None
         egg_hit: int
         pageinfo: dict = None
-        result: Union[List[Union[SearchResultVideo]], dict]  # 搜索结果 todo: obj
+        result: Union[List[Union[SearchResultVideo, SearchResultUser]], dict]  # 搜索结果 todo: obj
         show_column: int
 
     data: SearchResponseData = None
