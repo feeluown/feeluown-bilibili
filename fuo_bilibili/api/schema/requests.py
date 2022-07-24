@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 
 from fuo_bilibili.api.schema.enums import VideoQualityNum, VideoFnval, SearchType, SearchOrderType, UserType, \
-    VideoDurationType, FavoriteResourceOrderType
+    VideoDurationType, FavoriteResourceOrderType, CommentType
 
 
 class BaseRequest(BaseModel):
@@ -137,3 +137,10 @@ class AudioGetUrlRequest(BaseRequest):
     sid: int
     privilege: int = 2
     quality: int = 2
+
+
+class VideoHotCommentsRequest(PaginatedRequest):
+    type: CommentType = CommentType.video
+    oid: int
+    root: int = None
+    sort: int = 2  # 2:热度 0:时间

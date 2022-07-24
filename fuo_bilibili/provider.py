@@ -3,7 +3,8 @@ from typing import List, Optional
 
 from feeluown.excs import NoUserLoggedIn
 from feeluown.library import AbstractProvider, ProviderV2, ProviderFlags as Pf, UserModel, VideoModel, \
-    BriefPlaylistModel, BriefSongModel, LyricModel
+    BriefPlaylistModel, BriefSongModel, LyricModel, SupportsSongSimilar, BriefSongProtocol, SupportsSongHotComments, \
+    BriefCommentModel
 from feeluown.media import Quality, Media, MediaType
 from feeluown.models import SearchType as FuoSearchType, ModelType
 from feeluown.utils.reader import SequentialReader
@@ -11,14 +12,15 @@ from feeluown.utils.reader import SequentialReader
 from fuo_bilibili import __identifier__, __alias__
 from fuo_bilibili.api import BilibiliApi, SearchRequest, SearchType as BilibiliSearchType, VideoInfoRequest, \
     PlayUrlRequest, VideoQualityNum
-from fuo_bilibili.api.schema.enums import VideoFnval
+from fuo_bilibili.api.schema.enums import VideoFnval, CommentType
 from fuo_bilibili.api.schema.requests import PasswordLoginRequest, SendSmsCodeRequest, SmsCodeLoginRequest, \
     FavoriteListRequest, FavoriteInfoRequest, FavoriteResourceRequest, CollectedFavoriteListRequest, \
     FavoriteSeasonResourceRequest, PaginatedRequest, HomeRecommendVideosRequest, HomeDynamicVideoRequest, \
-    UserInfoRequest, UserBestVideoRequest, UserVideoRequest, AudioFavoriteSongsRequest, AudioGetUrlRequest
+    UserInfoRequest, UserBestVideoRequest, UserVideoRequest, AudioFavoriteSongsRequest, AudioGetUrlRequest, \
+    VideoHotCommentsRequest
 from fuo_bilibili.api.schema.responses import RequestCaptchaResponse, RequestLoginKeyResponse, PasswordLoginResponse, \
     SendSmsCodeResponse, SmsCodeLoginResponse, NavInfoResponse, PlayUrlResponse
-from fuo_bilibili.model import BSearchModel, BSongModel, BPlaylistModel, BArtistModel
+from fuo_bilibili.model import BSearchModel, BSongModel, BPlaylistModel, BArtistModel, BCommentModel
 
 SEARCH_TYPE_MAP = {
     FuoSearchType.vi: BilibiliSearchType.VIDEO,
@@ -27,13 +29,13 @@ SEARCH_TYPE_MAP = {
 }
 
 
-class BilibiliProvider(AbstractProvider, ProviderV2):
+class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, SupportsSongHotComments):
     # noinspection PyPep8Naming
     class meta:
         identifier: str = __identifier__
         name: str = __alias__
         flags: dict = {
-            ModelType.song: (Pf.model_v2 | Pf.get | Pf.multi_quality | Pf.lyric | Pf.mv),
+            ModelType.song: (Pf.model_v2 | Pf.get | Pf.multi_quality | Pf.lyric | Pf.mv | Pf.similar | Pf.hot_comments),
             ModelType.video: (Pf.model_v2 | Pf.multi_quality | Pf.get),
             ModelType.playlist: (Pf.model_v2 | Pf.get | Pf.songs_rd),
             ModelType.artist: (Pf.model_v2 | Pf.get | Pf.songs_rd),
@@ -45,6 +47,7 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
         self._user = None
         self._video_quality_codes = dict()
         self._video_cids = dict()
+        self._video_avids = dict()
 
     def _format_search_request(self, keyword, type_) -> SearchRequest:
         btype = SEARCH_TYPE_MAP.get(type_)
@@ -105,6 +108,25 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
         response = self._api.video_get_info(VideoInfoRequest(bvid=identifier))
         return BSongModel.create_info_model(response)
 
+    def song_list_similar(self, song: BriefSongProtocol) -> List[BriefSongModel]:
+        if song.identifier.startswith('audio_'):
+            return []
+        resp = self._api.video_get_related(VideoInfoRequest(bvid=song.identifier))
+        return [BSongModel.create_history_brief_model(media) for media in resp.data]
+
+    # noinspection PyProtocol
+    def song_list_hot_comments(self, song: BriefSongProtocol) -> List[BCommentModel]:
+        if song.identifier.startswith('audio_'):
+            _, id_ = song.identifier.split('_')
+            resp = self._api.video_get_hot_comments(VideoHotCommentsRequest(
+                type=CommentType.audio, oid=int(id_), ps=10
+            ))
+        else:
+            resp = self._api.video_get_hot_comments(VideoHotCommentsRequest(
+                type=CommentType.video, oid=self._get_video_avid(song.identifier), ps=10
+            ))
+        return [BCommentModel.create_model(comment) for comment in resp.data.replies]
+
     def song_get_lyric(self, song) -> Optional[LyricModel]:
         if not hasattr(song, 'lyric') or song.lyric is None or len(song.lyric) == 0:
             return None
@@ -113,6 +135,14 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
             identifier=song.identifier,
             content=self._api.get_content(song.lyric),
         )
+
+    def _get_video_avid(self, bvid: str) -> int:
+        avid = self._video_avids.get(bvid)
+        if avid is None:
+            info = self._api.video_get_info(VideoInfoRequest(bvid=bvid))
+            self._video_avids[bvid] = info.data.aid
+            avid = info.data.aid
+        return avid
 
     def _get_video_cid(self, bvid):
         cid = self._video_cids.get(bvid)

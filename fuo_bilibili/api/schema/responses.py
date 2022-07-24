@@ -714,3 +714,54 @@ class AudioGetUrlResponse(BaseResponse):
         type: int
 
     data: AudioGetUrlResponseData = None
+
+
+class VideoGetRelatedResponse(BaseResponse):
+    class VideoGetRelatedResponseData(BaseModel):
+        bvid: str
+        aid: int
+        videos: int  # 分P总数
+        tid: int  # 分区id
+        tname: str  # 子分区名称
+        copyright: VideoCopyright
+        pic: str  # 封面
+        title: str  # 标题
+        desc: str  # 简介
+        state: VideoState
+        duration: timedelta
+        forward: int = None
+        mission_id: int = None
+        redirect_url: str = None
+        rights: Rights
+        owner: Owner
+        stat: Stat
+        dynamic: str
+        cid: int  # 1P cid
+        dimension: Dimension
+
+    data: List[VideoGetRelatedResponseData] = None
+
+
+class VideoHotCommentsResponse(BaseResponse):
+    class VideoHotCommentsResponseData(BaseModel):
+        class Reply(BaseModel):
+            class Member(BaseModel):
+                mid: int
+                uname: str
+                avatar: str
+
+            class Content(BaseModel):
+                message: str
+                plat: int
+                device: str
+
+            rpid: int
+            like: int
+            ctime: datetime
+            member: Member
+            content: Content
+
+        page: dict
+        replies: List[Reply]
+
+    data: VideoHotCommentsResponseData = None

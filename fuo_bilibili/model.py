@@ -2,7 +2,7 @@ from typing import List, Union, Optional
 
 from bs4 import BeautifulSoup
 from feeluown.library import SongModel, BriefArtistModel, PlaylistModel, BriefPlaylistModel, BriefUserModel, \
-    BriefSongModel, ArtistModel
+    BriefSongModel, ArtistModel, CommentModel
 from feeluown.models import SearchModel, ModelExistence
 
 from fuo_bilibili import __identifier__
@@ -12,7 +12,7 @@ from fuo_bilibili.api.schema.responses import SearchResponse, SearchResultVideo,
     FavoriteListResponse, FavoriteInfoResponse, FavoriteResourceResponse, CollectedFavoriteListResponse, \
     FavoriteSeasonResourceResponse, HistoryLaterVideoResponse, HomeDynamicVideoResponse, UserInfoResponse, \
     UserBestVideoResponse, UserVideoResponse, AudioFavoriteSongsResponse, AudioFavoriteListResponse, AudioPlaylist, \
-    AudioPlaylistSong
+    AudioPlaylistSong, VideoHotCommentsResponse
 from fuo_bilibili.util import format_timedelta_to_hms
 
 PROVIDER_ID = __identifier__
@@ -331,4 +331,23 @@ class BArtistModel(ArtistModel):
             aliases=alias,
             hot_songs=[BSongModel.create_hot_model(v) for v in video_resp.data],
             description=resp.data.sign
+        )
+
+
+class BCommentModel(CommentModel):
+    PROVIDER_ID = __identifier__
+
+    @classmethod
+    def create_model(cls, reply: VideoHotCommentsResponse.VideoHotCommentsResponseData.Reply):
+        return cls(
+            source=PROVIDER_ID,
+            identifier=str(reply.rpid),
+            user=BriefUserModel(
+                source=PROVIDER_ID,
+                identifier=reply.member.mid,
+                name=reply.member.uname
+            ),
+            content=reply.content.message,
+            liked_count=reply.like,
+            time=int(reply.ctime.timestamp())
         )

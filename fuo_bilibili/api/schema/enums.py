@@ -164,3 +164,10 @@ class FavoriteResourceOrderType(Enum):
     MTIME = 'mtime'  # 最近收藏
     VIEW = 'view'  # 最多播放
     PUBTIME = 'pubtime'  # 最新投稿
+
+
+class CommentType(Enum):
+    video = 1  # 视频稿件
+    topic = 2  # 话题
+    activity = 3  # 活动
+    audio = 14  # 音频
