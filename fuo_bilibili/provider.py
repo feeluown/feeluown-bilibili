@@ -193,12 +193,13 @@ class BilibiliProvider(AbstractProvider, ProviderV2):
             fnval=VideoFnval.DASH
         ))
         audios = sorted(response.data.dash.audio, key=lambda a: a.bandwidth, reverse=True)
+        print(quality, audios)
         selects: Optional[List[PlayUrlResponse.PlayUrlResponseData.Dash.DashItem]] = None
         match quality:
             case Quality.Audio.lq:
-                selects = [a.bandwidth <= 120000 for a in audios]
+                selects = list(filter(lambda a: a.bandwidth <= 120000, audios))
             case Quality.Audio.sq:
-                selects = [a.bandwidth <= 256000 for a in audios]
+                selects = list(filter(lambda a: a.bandwidth <= 256000, audios))
             case Quality.Audio.hq:
                 selects = audios
         if selects is None or len(selects) == 0:
