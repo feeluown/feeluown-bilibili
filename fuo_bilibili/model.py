@@ -104,6 +104,9 @@ class BSongModel(SongModel):
     @classmethod
     def create_info_model(cls, response: VideoInfoResponse) -> 'BSongModel':
         result = response.data
+        lrc = None
+        if result.subtitle.list is not None and len(result.subtitle.list) > 0:
+            lrc = result.subtitle.list[0].subtitle_url
         return cls(
             source=__identifier__,
             identifier=result.bvid,
@@ -115,7 +118,8 @@ class BSongModel(SongModel):
                 name=result.owner.name,
             )],
             duration=result.duration.total_seconds() * 1000,
-            exists=ModelExistence.yes
+            lyric=lrc,
+            exists=ModelExistence.yes,
         )
 
     @classmethod

@@ -21,6 +21,7 @@ from fuo_bilibili.api.schema.requests import PasswordLoginRequest, SendSmsCodeRe
 from fuo_bilibili.api.schema.responses import RequestCaptchaResponse, RequestLoginKeyResponse, PasswordLoginResponse, \
     SendSmsCodeResponse, SmsCodeLoginResponse, NavInfoResponse, PlayUrlResponse
 from fuo_bilibili.model import BSearchModel, BSongModel, BPlaylistModel, BArtistModel, BCommentModel
+from fuo_bilibili.util import json_to_lrc_text
 
 SEARCH_TYPE_MAP = {
     FuoSearchType.vi: BilibiliSearchType.VIDEO,
@@ -129,12 +130,20 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
 
     def song_get_lyric(self, song) -> Optional[LyricModel]:
         if not hasattr(song, 'lyric') or song.lyric is None or len(song.lyric) == 0:
-            return None
-        return LyricModel(
-            source=__identifier__,
-            identifier=song.identifier,
-            content=self._api.get_content(song.lyric),
-        )
+            song = self.song_get(song.identifier)
+        if song.lyric.endswith('.json'):
+            json_data = self._api.get_content(song.lyric)
+            return LyricModel(
+                source=__identifier__,
+                identifier=song.identifier,
+                content=json_to_lrc_text(json_data),
+            )
+        else:
+            return LyricModel(
+                source=__identifier__,
+                identifier=song.identifier,
+                content=self._api.get_content(song.lyric),
+            )
 
     def _get_video_avid(self, bvid: str) -> int:
         avid = self._video_avids.get(bvid)

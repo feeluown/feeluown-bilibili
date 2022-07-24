@@ -96,7 +96,7 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
 def main():
     api = BilibiliApi()
     api.load_cookies()
-    info = api.search(SearchRequest(search_type=SearchType.BILI_USER, keyword='土豆饼饼'))
+    info = api.video_get_info(VideoInfoRequest(bvid='BV1Aa411E7ZR'))
     print(info)
     api.close()
 
