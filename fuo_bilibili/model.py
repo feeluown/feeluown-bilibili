@@ -2,7 +2,7 @@ from typing import List, Union, Optional
 
 from bs4 import BeautifulSoup
 from feeluown.library import SongModel, BriefArtistModel, PlaylistModel, BriefPlaylistModel, BriefUserModel, \
-    BriefSongModel, ArtistModel, CommentModel, VideoModel, BriefVideoModel
+    BriefSongModel, ArtistModel, CommentModel, VideoModel, BriefVideoModel, BriefAlbumModel
 from feeluown.models import SearchModel, ModelExistence
 
 from fuo_bilibili import __identifier__
@@ -18,6 +18,10 @@ from fuo_bilibili.util import format_timedelta_to_hms
 PROVIDER_ID = __identifier__
 
 
+class BBriefAlbumModel(BriefAlbumModel):
+    cover: str = ''
+
+
 class BSongModel(SongModel):
     source: str = PROVIDER_ID
 
@@ -28,7 +32,13 @@ class BSongModel(SongModel):
         return cls(
             source=__identifier__,
             identifier=f'audio_{au.id}',
-            album=None,
+            album=BBriefAlbumModel(
+                source=PROVIDER_ID,
+                identifier=au.uid,
+                name=au.author,
+                artists_name=au.author,
+                cover=au.cover,
+            ),
             title=au.title,
             artists=[BriefArtistModel(
                 source=PROVIDER_ID,
@@ -54,7 +64,13 @@ class BSongModel(SongModel):
         return cls(
             source=__identifier__,
             identifier=item.bvid,
-            album=None,
+            album=BBriefAlbumModel(
+                source=PROVIDER_ID,
+                identifier=item.owner.mid,
+                name=item.owner.name,
+                artists_name=item.owner.name,
+                cover=item.owner.face,
+            ),
             title=BeautifulSoup(item.title).get_text(),
             artists=[BriefArtistModel(
                 source=PROVIDER_ID,
@@ -91,7 +107,13 @@ class BSongModel(SongModel):
         return cls(
             source=__identifier__,
             identifier=result.bvid,
-            album=None,
+            album=BBriefAlbumModel(
+                source=PROVIDER_ID,
+                identifier=result.mid,
+                name=result.author,
+                artists_name=result.author,
+                cover=result.pic,
+            ),
             title=BeautifulSoup(result.title).get_text(),
             artists=[BriefArtistModel(
                 source=PROVIDER_ID,
@@ -110,7 +132,13 @@ class BSongModel(SongModel):
         return cls(
             source=__identifier__,
             identifier=result.bvid,
-            album=None,
+            album=BBriefAlbumModel(
+                source=PROVIDER_ID,
+                identifier=result.owner.mid,
+                name=result.owner.name,
+                artists_name=result.owner.name,
+                cover=result.owner.face,
+            ),
             title=result.title,
             artists=[BriefArtistModel(
                 source=PROVIDER_ID,
