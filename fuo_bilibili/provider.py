@@ -4,7 +4,7 @@ from typing import List, Optional
 from feeluown.excs import NoUserLoggedIn
 from feeluown.library import AbstractProvider, ProviderV2, ProviderFlags as Pf, UserModel, VideoModel, \
     BriefPlaylistModel, BriefSongModel, LyricModel, SupportsSongSimilar, BriefSongProtocol, SupportsSongHotComments, \
-    BriefCommentModel
+    BriefCommentModel, BriefVideoModel
 from feeluown.media import Quality, Media, MediaType
 from feeluown.models import SearchType as FuoSearchType, ModelType
 from feeluown.utils.reader import SequentialReader
@@ -17,10 +17,10 @@ from fuo_bilibili.api.schema.requests import PasswordLoginRequest, SendSmsCodeRe
     FavoriteListRequest, FavoriteInfoRequest, FavoriteResourceRequest, CollectedFavoriteListRequest, \
     FavoriteSeasonResourceRequest, PaginatedRequest, HomeRecommendVideosRequest, HomeDynamicVideoRequest, \
     UserInfoRequest, UserBestVideoRequest, UserVideoRequest, AudioFavoriteSongsRequest, AudioGetUrlRequest, \
-    VideoHotCommentsRequest
+    VideoHotCommentsRequest, AnotherPaginatedRequest, LivePlayUrlRequest
 from fuo_bilibili.api.schema.responses import RequestCaptchaResponse, RequestLoginKeyResponse, PasswordLoginResponse, \
     SendSmsCodeResponse, SmsCodeLoginResponse, NavInfoResponse, PlayUrlResponse
-from fuo_bilibili.model import BSearchModel, BSongModel, BPlaylistModel, BArtistModel, BCommentModel
+from fuo_bilibili.model import BSearchModel, BSongModel, BPlaylistModel, BArtistModel, BCommentModel, BVideoModel
 from fuo_bilibili.util import json_to_lrc_text
 
 SEARCH_TYPE_MAP = {
@@ -131,6 +131,8 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
     def song_get_lyric(self, song) -> Optional[LyricModel]:
         if not hasattr(song, 'lyric') or song.lyric is None or len(song.lyric) == 0:
             song = self.song_get(song.identifier)
+        if song.lyric is None:
+            return None
         if song.lyric.endswith('.json'):
             json_data = self._api.get_content(song.lyric)
             return LyricModel(
@@ -162,6 +164,8 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
         return cid
 
     def video_list_quality(self, video) -> List[Quality.Video]:
+        if video.identifier.startswith('live_'):
+            return [Quality.Video.hd]
         response = self._api.video_get_url(PlayUrlRequest(
             bvid=video.identifier,
             cid=self._get_video_cid(video.identifier),
@@ -185,6 +189,13 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
         )
 
     def video_get_media(self, video, quality: Quality.Video) -> Optional[Media]:
+        if video.identifier.startswith('live_'):
+            _, id_ = video.identifier.split('_')
+            resp = self._api.live_play_url(LivePlayUrlRequest(cid=int(id_)))
+            if resp.data.durl is None or len(resp.data.durl) == 0:
+                return None
+            return Media(resp.data.durl[0].url, format='m3u8',
+                         http_headers={'Referer': 'https://www.bilibili.com/'})
         max_quality_code = VideoQualityNum.get_max_from_quality(quality)
         select_quality = max(filter(lambda c: c.value <= max_quality_code, self._video_quality_codes[video.identifier]),
                              key=lambda c: c.value)
@@ -265,6 +276,10 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
     def home_recommend_videos(self, idx) -> List[BriefSongModel]:
         resp = self._api.home_recommend_videos(HomeRecommendVideosRequest(ps=10, fresh_idx=idx, fresh_idx_1h=idx))
         return [BSongModel.create_history_brief_model(v) for v in resp.data.item]
+
+    def video_live_feeds(self) -> List[BVideoModel]:
+        resp = self._api.live_feed_list(AnotherPaginatedRequest(pagesize=30))
+        return [BVideoModel.create_live_model(live) for live in resp.data.list]
 
     def audio_playlist_get(self, identifier: str) -> Optional[BPlaylistModel]:
         _, type_, id_ = identifier.split('_')

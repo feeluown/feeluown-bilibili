@@ -38,6 +38,11 @@ class HomeRenderer(Renderer, LibraryTabRendererMixin):
         if self.tab_id == Tab.songs:
             self._refresh_home_videos()
             self.toolbar.add_tmp_button(self.refresh_btn)
+        elif self.tab_id == Tab.videos:
+            self._load_live_streams()
+
+    def _load_live_streams(self):
+        self.show_videos(self._provider.video_live_feeds())
 
     def _refresh_home_videos(self):
         self._rcmd_index += 1
@@ -53,7 +58,7 @@ class HomeRenderer(Renderer, LibraryTabRendererMixin):
             self.tabbar.songs_btn.setText('首页推荐')
             self.tabbar.albums_btn.hide()
             self.tabbar.artists_btn.hide()
-            self.tabbar.videos_btn.hide()
+            self.tabbar.videos_btn.setText('订阅直播')
             self.tabbar.playlists_btn.hide()
         except Exception as e:
             logger.warning(str(e))

@@ -775,3 +775,45 @@ class VideoHotCommentsResponse(BaseResponse):
         replies: List[Reply]
 
     data: VideoHotCommentsResponseData = None
+
+
+class LiveFeedListResponse(BaseResponse):
+    class LiveFeedListResponseData(BaseModel):
+        class LiveFeed(BaseModel):
+            area_id: int
+            cover: str
+            face: str
+            link: str
+            online: int
+            parent_area_id: int
+            pic: str
+            roomid: int
+            title: str
+            uid: int
+            uname: str
+
+        page: int
+        pagesize: int
+        results: int
+        list: List[LiveFeed]
+
+    data: LiveFeedListResponseData = None
+
+
+class LivePlayUrlResponse(BaseResponse):
+    class LivePlayUrlResponseData(BaseModel):
+        class Qn(BaseModel):
+            qn: int
+            desc: str
+
+        class Durl(BaseModel):
+            url: str
+            order: int
+
+        current_quality: int
+        accept_quality: List[int]
+        current_qn: int
+        quality_description: List[Qn]
+        durl: List[Durl]
+
+    data: LivePlayUrlResponseData = None

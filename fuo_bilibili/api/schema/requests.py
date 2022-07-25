@@ -21,6 +21,11 @@ class PaginatedRequest(BaseRequest):
     ps: int = 20  # 每页数量
 
 
+class AnotherPaginatedRequest(BaseRequest):
+    page: int = 1
+    pagesize: int = 20
+
+
 class SendSmsCodeRequest(BaseRequest, GeetestBase):
     tel: str  # 手机号（不包含国家代码）
     cid: str = '+86'  # 国家代码
@@ -144,3 +149,15 @@ class VideoHotCommentsRequest(PaginatedRequest):
     oid: int
     root: int = None
     sort: int = 2  # 2:热度 0:时间
+
+
+class LivePlayUrlRequest(BaseRequest):
+    cid: int  # 直播间roomid
+    platform: str = 'h5'
+    # 80：流畅
+    # 150：高清
+    # 400：蓝光
+    # 10000：原画
+    # 20000：4K
+    # 30000：杜比
+    qn: int = 10000

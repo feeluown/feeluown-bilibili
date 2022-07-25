@@ -2,7 +2,7 @@ from typing import List, Union, Optional
 
 from bs4 import BeautifulSoup
 from feeluown.library import SongModel, BriefArtistModel, PlaylistModel, BriefPlaylistModel, BriefUserModel, \
-    BriefSongModel, ArtistModel, CommentModel
+    BriefSongModel, ArtistModel, CommentModel, VideoModel, BriefVideoModel
 from feeluown.models import SearchModel, ModelExistence
 
 from fuo_bilibili import __identifier__
@@ -12,7 +12,7 @@ from fuo_bilibili.api.schema.responses import SearchResponse, SearchResultVideo,
     FavoriteListResponse, FavoriteInfoResponse, FavoriteResourceResponse, CollectedFavoriteListResponse, \
     FavoriteSeasonResourceResponse, HistoryLaterVideoResponse, HomeDynamicVideoResponse, UserInfoResponse, \
     UserBestVideoResponse, UserVideoResponse, AudioFavoriteSongsResponse, AudioFavoriteListResponse, AudioPlaylist, \
-    AudioPlaylistSong, VideoHotCommentsResponse, SearchResultUser
+    AudioPlaylistSong, VideoHotCommentsResponse, SearchResultUser, LiveFeedListResponse
 from fuo_bilibili.util import format_timedelta_to_hms
 
 PROVIDER_ID = __identifier__
@@ -366,4 +366,23 @@ class BCommentModel(CommentModel):
             content=reply.content.message,
             liked_count=reply.like,
             time=int(reply.ctime.timestamp())
+        )
+
+
+class BVideoModel(VideoModel):
+    @classmethod
+    def create_live_model(cls, live: LiveFeedListResponse.LiveFeedListResponseData.LiveFeed):
+        return cls(
+            source=PROVIDER_ID,
+            identifier=f'live_{live.roomid}',
+            title=live.title,
+            artists=[
+                BriefArtistModel(
+                    source=PROVIDER_ID,
+                    identifier=live.uid,
+                    name=live.uname
+                )
+            ],
+            duration=0,
+            cover=live.cover,
         )

@@ -9,11 +9,12 @@ from pydantic import BaseModel
 from fuo_bilibili.api.audio import AudioMixin
 from fuo_bilibili.api.base import BaseMixin
 from fuo_bilibili.api.history import HistoryMixin
+from fuo_bilibili.api.live import LiveMixin
 from fuo_bilibili.api.login import LoginMixin
 from fuo_bilibili.api.playlist import PlaylistMixin
 from fuo_bilibili.api.schema.enums import VideoQualityNum, SearchType
 from fuo_bilibili.api.schema.requests import BaseRequest, VideoInfoRequest, PlayUrlRequest, SearchRequest, \
-    FavoriteListRequest, PaginatedRequest, AudioFavoriteSongsRequest
+    FavoriteListRequest, PaginatedRequest, AudioFavoriteSongsRequest, AnotherPaginatedRequest, LivePlayUrlRequest
 from fuo_bilibili.api.schema.responses import BaseResponse
 from fuo_bilibili.api.user import UserMixin
 from fuo_bilibili.api.video import VideoMixin
@@ -22,7 +23,7 @@ from fuo_bilibili.const import PLUGIN_API_COOKIEJAR_FILE
 CACHE = LRUCache(30)
 
 
-class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin, UserMixin, AudioMixin):
+class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin, UserMixin, AudioMixin, LiveMixin):
     def __init__(self):
         self._cookie = MozillaCookieJar(PLUGIN_API_COOKIEJAR_FILE)
         self._session = requests.Session()
@@ -54,6 +55,7 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
         if clazz is None:
             return None
         response_str = r.text
+        print(response_str)
         res: Union[BaseResponse, BaseModel] = clazz.parse_raw(response_str)
         if isinstance(res, BaseResponse) and res.code != 0:
             raise RuntimeError(f'code not ok: {res.message}')
@@ -96,7 +98,7 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
 def main():
     api = BilibiliApi()
     api.load_cookies()
-    info = api.video_get_info(VideoInfoRequest(bvid='BV1Aa411E7ZR'))
+    info = api.live_play_url(LivePlayUrlRequest(cid=8915924))
     print(info)
     api.close()
 
