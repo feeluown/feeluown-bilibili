@@ -24,7 +24,7 @@ from fuo_bilibili.model import BSearchModel, BSongModel, BPlaylistModel, BArtist
 from fuo_bilibili.util import json_to_lrc_text
 
 SEARCH_TYPE_MAP = {
-    FuoSearchType.vi: BilibiliSearchType.VIDEO,
+    FuoSearchType.vi: BilibiliSearchType.LIVE_ROOM,
     FuoSearchType.ar: BilibiliSearchType.BILI_USER,
     FuoSearchType.so: BilibiliSearchType.VIDEO,
 }

@@ -12,7 +12,7 @@ from fuo_bilibili.api.schema.responses import SearchResponse, SearchResultVideo,
     FavoriteListResponse, FavoriteInfoResponse, FavoriteResourceResponse, CollectedFavoriteListResponse, \
     FavoriteSeasonResourceResponse, HistoryLaterVideoResponse, HomeDynamicVideoResponse, UserInfoResponse, \
     UserBestVideoResponse, UserVideoResponse, AudioFavoriteSongsResponse, AudioFavoriteListResponse, AudioPlaylist, \
-    AudioPlaylistSong, VideoHotCommentsResponse, SearchResultUser, LiveFeedListResponse
+    AudioPlaylistSong, VideoHotCommentsResponse, SearchResultUser, LiveFeedListResponse, SearchResultLiveRoom
 from fuo_bilibili.util import format_timedelta_to_hms
 
 PROVIDER_ID = __identifier__
@@ -180,20 +180,41 @@ class BSearchModel(SearchModel):
             name=user.uname,
         )
 
+    @staticmethod
+    def search_live_model(live: SearchResultLiveRoom):
+        return BVideoModel(
+            source=PROVIDER_ID,
+            identifier=f'live_{live.roomid}',
+            title=live.title,
+            artists=[
+                BriefArtistModel(
+                    source=PROVIDER_ID,
+                    identifier=live.uid,
+                    name=live.uname
+                )
+            ],
+            duration=0,
+            cover=f'https:{live.user_cover}',
+        )
+
     @classmethod
     def create_model(cls, request: SearchRequest, response: SearchResponse):
         songs = None
         artists = None
+        videos = None
         match request.search_type:
             case SearchType.VIDEO:
                 songs = list(map(lambda r: BSongModel.create_model(r), response.data.result))
             case SearchType.BILI_USER:
                 artists = list(map(cls.search_user_model, response.data.result))
+            case SearchType.LIVE_ROOM:
+                videos = list(map(cls.search_live_model, response.data.result))
         return cls(
             source=PROVIDER_ID,
             q=request.keyword,
             songs=songs,
-            artists=artists
+            artists=artists,
+            videos=videos,
         )
 
 

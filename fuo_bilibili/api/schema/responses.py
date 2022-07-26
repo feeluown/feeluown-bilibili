@@ -88,6 +88,24 @@ class SearchResultUser(BaseModel):
     upic: str
 
 
+class SearchResultLiveRoom(BaseModel):
+    type: SearchType = SearchType.LIVE_ROOM
+    uid: int
+    tags: str  # 直播间tag
+    live_time: datetime
+    cate_name: str  # 子分区名
+    live_status: bool
+    uname: str
+    uface: str
+    user_cover: str  # 封面
+    short_id: str  # 直播间短号
+    title: str  # 标题
+    cover: str  # 直播关键帧
+    online: int  # 在线人数
+    roomid: int  # 直播间id
+    attentions: int  # 粉丝数
+
+
 class SearchResultVideo(BaseModel):
     type: SearchType = SearchType.VIDEO
     id: int  # av号
@@ -212,7 +230,7 @@ class SearchResponse(BaseResponse):
         exp_list: dict = None
         egg_hit: int
         pageinfo: dict = None
-        result: Union[List[Union[SearchResultVideo, SearchResultUser]], dict]  # 搜索结果 todo: obj
+        result: Union[List[Union[SearchResultVideo, SearchResultUser, SearchResultLiveRoom]], dict]  # 搜索结果 todo: obj
         show_column: int
 
     data: SearchResponseData = None
