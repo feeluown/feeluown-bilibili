@@ -11,6 +11,7 @@ from fuo_bilibili.api.base import BaseMixin
 from fuo_bilibili.api.history import HistoryMixin
 from fuo_bilibili.api.live import LiveMixin
 from fuo_bilibili.api.login import LoginMixin
+from fuo_bilibili.api.media import MediaMixin
 from fuo_bilibili.api.playlist import PlaylistMixin
 from fuo_bilibili.api.schema.enums import VideoQualityNum, SearchType
 from fuo_bilibili.api.schema.requests import BaseRequest, VideoInfoRequest, PlayUrlRequest, SearchRequest, \
@@ -23,7 +24,8 @@ from fuo_bilibili.const import PLUGIN_API_COOKIEJAR_FILE
 CACHE = LRUCache(30)
 
 
-class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin, UserMixin, AudioMixin, LiveMixin):
+class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin, UserMixin, AudioMixin, LiveMixin,
+                  MediaMixin):
     def __init__(self):
         self._cookie = MozillaCookieJar(PLUGIN_API_COOKIEJAR_FILE)
         self._session = requests.Session()

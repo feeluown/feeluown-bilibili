@@ -161,3 +161,8 @@ class LivePlayUrlRequest(BaseRequest):
     # 20000：4K
     # 30000：杜比
     qn: int = 10000
+
+
+class MediaGetListRequest(BaseRequest):
+    season_id: int = None
+    ep_id: int = None

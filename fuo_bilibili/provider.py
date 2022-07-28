@@ -4,7 +4,7 @@ from typing import List, Optional
 from feeluown.excs import NoUserLoggedIn
 from feeluown.library import AbstractProvider, ProviderV2, ProviderFlags as Pf, UserModel, VideoModel, \
     BriefPlaylistModel, BriefSongModel, LyricModel, SupportsSongSimilar, BriefSongProtocol, SupportsSongHotComments, \
-    BriefCommentModel, BriefVideoModel
+    BriefCommentModel, BriefVideoModel, SupportsAlbumGet
 from feeluown.media import Quality, Media, MediaType
 from feeluown.models import SearchType as FuoSearchType, ModelType
 from feeluown.utils.reader import SequentialReader
@@ -17,10 +17,11 @@ from fuo_bilibili.api.schema.requests import PasswordLoginRequest, SendSmsCodeRe
     FavoriteListRequest, FavoriteInfoRequest, FavoriteResourceRequest, CollectedFavoriteListRequest, \
     FavoriteSeasonResourceRequest, PaginatedRequest, HomeRecommendVideosRequest, HomeDynamicVideoRequest, \
     UserInfoRequest, UserBestVideoRequest, UserVideoRequest, AudioFavoriteSongsRequest, AudioGetUrlRequest, \
-    VideoHotCommentsRequest, AnotherPaginatedRequest, LivePlayUrlRequest
+    VideoHotCommentsRequest, AnotherPaginatedRequest, LivePlayUrlRequest, MediaGetListRequest
 from fuo_bilibili.api.schema.responses import RequestCaptchaResponse, RequestLoginKeyResponse, PasswordLoginResponse, \
     SendSmsCodeResponse, SmsCodeLoginResponse, NavInfoResponse, PlayUrlResponse
-from fuo_bilibili.model import BSearchModel, BSongModel, BPlaylistModel, BArtistModel, BCommentModel, BVideoModel
+from fuo_bilibili.model import BSearchModel, BSongModel, BPlaylistModel, BArtistModel, BCommentModel, BVideoModel, \
+    BAlbumModel
 from fuo_bilibili.util import json_to_lrc_text
 
 SEARCH_TYPE_MAP = {
@@ -31,7 +32,7 @@ SEARCH_TYPE_MAP = {
 }
 
 
-class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, SupportsSongHotComments):
+class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, SupportsSongHotComments, SupportsAlbumGet):
     # noinspection PyPep8Naming
     class meta:
         identifier: str = __identifier__
@@ -41,7 +42,7 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
             ModelType.video: (Pf.model_v2 | Pf.multi_quality | Pf.get),
             ModelType.playlist: (Pf.model_v2 | Pf.get | Pf.songs_rd),
             ModelType.artist: (Pf.model_v2 | Pf.get | Pf.songs_rd),
-            ModelType.album: (Pf.model_v2 | Pf.get | Pf.songs_rd),
+            ModelType.album: (Pf.model_v2 | Pf.get),
         }
 
     def __init__(self):
@@ -292,6 +293,13 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
             case 2:
                 resp = self._api.audio_collected_info(AudioFavoriteSongsRequest(sid=int(id_)))
                 return BPlaylistModel.create_audio_model(resp.data)
+        return None
+
+    def album_get(self, identifier: str) -> Optional[BAlbumModel]:
+        if identifier.startswith('media_'):
+            _, __, ssid = identifier.split('_')
+            resp = self._api.media_bangumi_get_list(MediaGetListRequest(season_id=ssid))
+            return BAlbumModel.create_season_model(resp.result)
         return None
 
     def playlist_get(self, identifier: str) -> Optional[BPlaylistModel]:

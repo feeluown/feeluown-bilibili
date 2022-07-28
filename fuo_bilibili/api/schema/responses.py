@@ -858,3 +858,41 @@ class LivePlayUrlResponse(BaseResponse):
         durl: List[Durl]
 
     data: LivePlayUrlResponseData = None
+
+
+class MediaGetListResponse(BaseResponse):
+    class MediaGetListResponseData(BaseModel):
+        class Episode(BaseModel):
+            aid: int
+            bvid: str
+            badge: str  # 标签
+            cid: int
+            cover: str
+            title: str
+            subtitle: str
+            vid: str
+            long_title: str
+            duration: timedelta
+
+            @classmethod
+            @validator('duration')
+            def convert_ms(cls, v):
+                return v / 1000
+
+        bkg_cover: str = None
+        cover: str
+        episodes: List[Episode]
+        evaluate: str  # 简介
+        media_id: int
+        season_id: int
+        seasons: list
+        section: list
+        share_sub_title: str  # 备注
+        square_cover: str  # 方形封面
+        title: str
+        subtitle: str
+        type: MediaType
+        up_info: dict
+
+    result: MediaGetListResponseData = None
+    data: Any = None

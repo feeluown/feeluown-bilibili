@@ -13,7 +13,7 @@ from fuo_bilibili.api.schema.responses import SearchResponse, SearchResultVideo,
     FavoriteSeasonResourceResponse, HistoryLaterVideoResponse, HomeDynamicVideoResponse, UserInfoResponse, \
     UserBestVideoResponse, UserVideoResponse, AudioFavoriteSongsResponse, AudioFavoriteListResponse, AudioPlaylist, \
     AudioPlaylistSong, VideoHotCommentsResponse, SearchResultUser, LiveFeedListResponse, SearchResultLiveRoom, \
-    SearchResultMedia
+    SearchResultMedia, MediaGetListResponse
 from fuo_bilibili.util import format_timedelta_to_hms
 
 PROVIDER_ID = __identifier__
@@ -167,7 +167,35 @@ class BSongModel(SongModel):
 
 
 class BAlbumModel(AlbumModel):
-    pass
+    @staticmethod
+    def create_episode_song_model(ep: MediaGetListResponse.MediaGetListResponseData.Episode,
+                                  media: MediaGetListResponse.MediaGetListResponseData) -> BSongModel:
+        return BSongModel(
+            source=__identifier__,
+            identifier=ep.bvid,
+            album=BBriefAlbumModel(
+                source=PROVIDER_ID,
+                identifier=f'media_{media.media_id}_{media.season_id}',
+                name=BeautifulSoup(media.title).text,
+                artists_name='',
+                cover=media.cover,
+            ),
+            title=ep.long_title,
+            artists=[],
+            duration=ep.duration.total_seconds(),
+        )
+
+    @classmethod
+    def create_season_model(cls, media: MediaGetListResponse.MediaGetListResponseData) -> 'BAlbumModel':
+        return cls(
+            source=PROVIDER_ID,
+            identifier=f'media_{media.media_id}_{media.season_id}',
+            name=BeautifulSoup(media.title).text,
+            artists=[],
+            songs=[cls.create_episode_song_model(ep, media) for ep in media.episodes],
+            cover=media.cover.replace('http://', 'https://'),
+            description=media.evaluate,
+        )
 
 
 class BSearchModel(SearchModel):
@@ -187,14 +215,12 @@ class BSearchModel(SearchModel):
 
     @staticmethod
     def search_media_model(media: SearchResultMedia):
-        return BAlbumModel(
+        return BBriefAlbumModel(
             source=PROVIDER_ID,
             identifier=f'media_{media.media_id}_{media.season_id}',
             name=BeautifulSoup(media.title).text,
-            artists=[],
-            songs=[],
+            artists_name='',
             cover=media.cover.replace('http://', 'https://'),
-            description=media.desc,
         )
 
     @staticmethod
@@ -246,7 +272,6 @@ class BPlaylistModel(PlaylistModel):
 
     @classmethod
     def create_audio_model(cls, p: AudioPlaylist):
-        print(p)
         identifier = None
         desc = ''
         count = 0
