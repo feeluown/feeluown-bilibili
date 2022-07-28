@@ -4,7 +4,7 @@ from typing import List, Optional
 from feeluown.excs import NoUserLoggedIn
 from feeluown.library import AbstractProvider, ProviderV2, ProviderFlags as Pf, UserModel, VideoModel, \
     BriefPlaylistModel, BriefSongModel, LyricModel, SupportsSongSimilar, BriefSongProtocol, SupportsSongHotComments, \
-    BriefCommentModel, BriefVideoModel, SupportsAlbumGet
+    BriefCommentModel, BriefVideoModel, SupportsAlbumGet, BriefAlbumModel
 from feeluown.media import Quality, Media, MediaType
 from feeluown.models import SearchType as FuoSearchType, ModelType
 from feeluown.utils.reader import SequentialReader
@@ -17,7 +17,7 @@ from fuo_bilibili.api.schema.requests import PasswordLoginRequest, SendSmsCodeRe
     FavoriteListRequest, FavoriteInfoRequest, FavoriteResourceRequest, CollectedFavoriteListRequest, \
     FavoriteSeasonResourceRequest, PaginatedRequest, HomeRecommendVideosRequest, HomeDynamicVideoRequest, \
     UserInfoRequest, UserBestVideoRequest, UserVideoRequest, AudioFavoriteSongsRequest, AudioGetUrlRequest, \
-    VideoHotCommentsRequest, AnotherPaginatedRequest, LivePlayUrlRequest, MediaGetListRequest
+    VideoHotCommentsRequest, AnotherPaginatedRequest, LivePlayUrlRequest, MediaGetListRequest, MediaFavlistRequest
 from fuo_bilibili.api.schema.responses import RequestCaptchaResponse, RequestLoginKeyResponse, PasswordLoginResponse, \
     SendSmsCodeResponse, SmsCodeLoginResponse, NavInfoResponse, PlayUrlResponse
 from fuo_bilibili.model import BSearchModel, BSongModel, BPlaylistModel, BArtistModel, BCommentModel, BVideoModel, \
@@ -283,6 +283,10 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
     def video_live_feeds(self) -> List[BVideoModel]:
         resp = self._api.live_feed_list(AnotherPaginatedRequest(pagesize=30))
         return [BVideoModel.create_live_model(live) for live in resp.data.list]
+
+    def media_user_collect(self) -> List[BriefAlbumModel]:
+        resp = self._api.media_bangumi_favlist(MediaFavlistRequest(vmid=int(self._user.identifier), ps=30))
+        return [BSearchModel.search_media_model(m) for m in resp.data.list]
 
     def audio_playlist_get(self, identifier: str) -> Optional[BPlaylistModel]:
         _, type_, id_ = identifier.split('_')

@@ -15,7 +15,8 @@ from fuo_bilibili.api.media import MediaMixin
 from fuo_bilibili.api.playlist import PlaylistMixin
 from fuo_bilibili.api.schema.enums import VideoQualityNum, SearchType
 from fuo_bilibili.api.schema.requests import BaseRequest, VideoInfoRequest, PlayUrlRequest, SearchRequest, \
-    FavoriteListRequest, PaginatedRequest, AudioFavoriteSongsRequest, AnotherPaginatedRequest, LivePlayUrlRequest
+    FavoriteListRequest, PaginatedRequest, AudioFavoriteSongsRequest, AnotherPaginatedRequest, LivePlayUrlRequest, \
+    MediaFavlistRequest
 from fuo_bilibili.api.schema.responses import BaseResponse
 from fuo_bilibili.api.user import UserMixin
 from fuo_bilibili.api.video import VideoMixin
@@ -99,7 +100,7 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
 def main():
     api = BilibiliApi()
     api.load_cookies()
-    info = api.search(SearchRequest(search_type=SearchType.MEDIA, keyword='惊天魔盗团'))
+    info = api.media_bangumi_favlist(MediaFavlistRequest(vmid=7844164, ps=30))
     print(info)
     api.close()
 

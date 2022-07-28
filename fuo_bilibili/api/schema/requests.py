@@ -166,3 +166,8 @@ class LivePlayUrlRequest(BaseRequest):
 class MediaGetListRequest(BaseRequest):
     season_id: int = None
     ep_id: int = None
+
+
+class MediaFavlistRequest(PaginatedRequest):
+    vmid: int
+    type: int = 1

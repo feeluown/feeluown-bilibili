@@ -31,15 +31,20 @@ class HomeRenderer(Renderer, LibraryTabRendererMixin):
         self.render_tabbar()
         self.meta_widget.show()
         self.meta_widget.title = '我的主页'
-        self.refresh_btn = TextButton('刷新', self.toolbar)
-        # noinspection PyUnresolvedReferences
-        self.refresh_btn.clicked.connect(self._refresh_home_videos)
 
         if self.tab_id == Tab.songs:
             self._refresh_home_videos()
-            self.toolbar.add_tmp_button(self.refresh_btn)
+            refresh_btn = TextButton('刷新', self.toolbar)
+            # noinspection PyUnresolvedReferences
+            refresh_btn.clicked.connect(self._refresh_home_videos)
+            self.toolbar.add_tmp_button(refresh_btn)
         elif self.tab_id == Tab.videos:
             self._load_live_streams()
+        elif self.tab_id == Tab.albums:
+            self._load_bangumis()
+
+    def _load_bangumis(self):
+        self.show_albums(self._provider.media_user_collect())
 
     def _load_live_streams(self):
         self.show_videos(self._provider.video_live_feeds())
@@ -56,7 +61,7 @@ class HomeRenderer(Renderer, LibraryTabRendererMixin):
         super().render_tabbar()
         try:
             self.tabbar.songs_btn.setText('首页推荐')
-            self.tabbar.albums_btn.hide()
+            self.tabbar.albums_btn.setText('我的追番')
             self.tabbar.artists_btn.hide()
             self.tabbar.videos_btn.setText('订阅直播')
             self.tabbar.playlists_btn.hide()

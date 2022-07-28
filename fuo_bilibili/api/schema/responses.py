@@ -885,14 +885,36 @@ class MediaGetListResponse(BaseResponse):
         evaluate: str  # 简介
         media_id: int
         season_id: int
-        seasons: list
-        section: list
+        seasons: list = None
+        section: list = None
         share_sub_title: str  # 备注
         square_cover: str  # 方形封面
         title: str
         subtitle: str
         type: MediaType
-        up_info: dict
+        up_info: dict = None
 
     result: MediaGetListResponseData = None
     data: Any = None
+
+
+class MediaFavlistResponse(BaseResponse):
+    class MediaFavlistResponseData(BaseModel):
+        class MediaInfo(BaseModel):
+            media_id: int
+            season_id: int
+            season_type: int
+            season_type_name: str
+            title: str
+            cover: str
+            total_count: int  # 总集数 -1 未完结
+            is_finish: bool  # 是否完结
+            evaluate: str  # 简介
+            subtitle: str
+
+        pn: int
+        ps: int
+        total: int
+        list: List[MediaInfo]
+
+    data: MediaFavlistResponseData = None
