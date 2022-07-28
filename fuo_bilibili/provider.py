@@ -27,6 +27,7 @@ SEARCH_TYPE_MAP = {
     FuoSearchType.vi: BilibiliSearchType.LIVE_ROOM,
     FuoSearchType.ar: BilibiliSearchType.BILI_USER,
     FuoSearchType.so: BilibiliSearchType.VIDEO,
+    FuoSearchType.al: BilibiliSearchType.BANGUMI,
 }
 
 
@@ -40,6 +41,7 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
             ModelType.video: (Pf.model_v2 | Pf.multi_quality | Pf.get),
             ModelType.playlist: (Pf.model_v2 | Pf.get | Pf.songs_rd),
             ModelType.artist: (Pf.model_v2 | Pf.get | Pf.songs_rd),
+            ModelType.album: (Pf.model_v2 | Pf.get | Pf.songs_rd),
         }
 
     def __init__(self):

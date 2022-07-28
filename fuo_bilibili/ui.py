@@ -278,7 +278,6 @@ class BUiManager:
         # 音频区
         audio_fav_list = self._provider.audio_favorite_playlists()
         audio_coll_list = self._provider.audio_collected_playlists()
-        print(audio_fav_list, audio_coll_list)
         self._app.pl_uimgr.add(audio_fav_list)
         self._app.pl_uimgr.add(audio_coll_list, is_fav=True)
 

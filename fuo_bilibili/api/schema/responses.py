@@ -4,7 +4,7 @@ from typing import Any, List, Union
 from pydantic import BaseModel, validator, Field
 
 from fuo_bilibili.api.schema.enums import VideoQualityNum, CodecId, VideoCopyright, VideoState, VideoFrom, SearchType, \
-    VipType
+    VipType, MediaType
 
 
 class BaseResponse(BaseModel):
@@ -86,6 +86,29 @@ class SearchResultUser(BaseModel):
     fans: int
     videos: int
     upic: str
+
+
+class SearchResultMedia(BaseModel):
+    class MediaScore(BaseModel):
+        user_count: int
+        score: float
+
+    type: SearchType = SearchType.MEDIA
+    media_id: int  # mdid
+    season_id: int  # ssid
+    title: str
+    org_title: str
+    cover: str
+    media_type: MediaType
+    areas: str
+    styles: str
+    cv: str
+    staff: str
+    desc: str
+    corner: int
+    media_score: MediaScore = None
+    season_type_name: str
+    is_follow: bool
 
 
 class SearchResultLiveRoom(BaseModel):
@@ -230,7 +253,7 @@ class SearchResponse(BaseResponse):
         exp_list: dict = None
         egg_hit: int
         pageinfo: dict = None
-        result: Union[List[Union[SearchResultVideo, SearchResultUser, SearchResultLiveRoom]], dict]  # 搜索结果 todo: obj
+        result: Union[List[Union[SearchResultVideo, SearchResultUser, SearchResultLiveRoom, SearchResultMedia]], dict]  # 搜索结果 todo: obj
         show_column: int
 
     data: SearchResponseData = None

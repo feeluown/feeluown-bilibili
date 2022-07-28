@@ -19,6 +19,15 @@ class SearchType(Enum):
     PHOTO = 'photo'  # 相册
 
 
+class MediaType(Enum):
+    bangumi = 1
+    movie = 2
+    document = 3
+    national_creation = 4
+    series = 5
+    entertainment = 7
+
+
 class UserType(Enum):
     """
     用户分类

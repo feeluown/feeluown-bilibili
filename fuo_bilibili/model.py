@@ -2,7 +2,7 @@ from typing import List, Union, Optional
 
 from bs4 import BeautifulSoup
 from feeluown.library import SongModel, BriefArtistModel, PlaylistModel, BriefPlaylistModel, BriefUserModel, \
-    BriefSongModel, ArtistModel, CommentModel, VideoModel, BriefVideoModel, BriefAlbumModel
+    BriefSongModel, ArtistModel, CommentModel, VideoModel, BriefVideoModel, BriefAlbumModel, AlbumModel
 from feeluown.models import SearchModel, ModelExistence
 
 from fuo_bilibili import __identifier__
@@ -12,7 +12,8 @@ from fuo_bilibili.api.schema.responses import SearchResponse, SearchResultVideo,
     FavoriteListResponse, FavoriteInfoResponse, FavoriteResourceResponse, CollectedFavoriteListResponse, \
     FavoriteSeasonResourceResponse, HistoryLaterVideoResponse, HomeDynamicVideoResponse, UserInfoResponse, \
     UserBestVideoResponse, UserVideoResponse, AudioFavoriteSongsResponse, AudioFavoriteListResponse, AudioPlaylist, \
-    AudioPlaylistSong, VideoHotCommentsResponse, SearchResultUser, LiveFeedListResponse, SearchResultLiveRoom
+    AudioPlaylistSong, VideoHotCommentsResponse, SearchResultUser, LiveFeedListResponse, SearchResultLiveRoom, \
+    SearchResultMedia
 from fuo_bilibili.util import format_timedelta_to_hms
 
 PROVIDER_ID = __identifier__
@@ -165,6 +166,10 @@ class BSongModel(SongModel):
         return [cls.create_history_brief_model(media) for media in resp.data.list]
 
 
+class BAlbumModel(AlbumModel):
+    pass
+
+
 class BSearchModel(SearchModel):
     PROVIDER_ID = __identifier__
 
@@ -178,6 +183,18 @@ class BSearchModel(SearchModel):
             source=PROVIDER_ID,
             identifier=user.mid,
             name=user.uname,
+        )
+
+    @staticmethod
+    def search_media_model(media: SearchResultMedia):
+        return BAlbumModel(
+            source=PROVIDER_ID,
+            identifier=f'media_{media.media_id}_{media.season_id}',
+            name=BeautifulSoup(media.title).text,
+            artists=[],
+            songs=[],
+            cover=media.cover.replace('http://', 'https://'),
+            description=media.desc,
         )
 
     @staticmethod
@@ -202,6 +219,7 @@ class BSearchModel(SearchModel):
         songs = None
         artists = None
         videos = None
+        albums = None
         match request.search_type:
             case SearchType.VIDEO:
                 songs = list(map(lambda r: BSongModel.create_model(r), response.data.result))
@@ -209,12 +227,15 @@ class BSearchModel(SearchModel):
                 artists = list(map(cls.search_user_model, response.data.result))
             case SearchType.LIVE_ROOM:
                 videos = list(map(cls.search_live_model, response.data.result))
+            case SearchType.BANGUMI:
+                albums = list(map(cls.search_media_model, response.data.result))
         return cls(
             source=PROVIDER_ID,
             q=request.keyword,
             songs=songs,
             artists=artists,
             videos=videos,
+            albums=albums,
         )
 
 

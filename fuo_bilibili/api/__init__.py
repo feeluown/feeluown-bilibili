@@ -55,7 +55,6 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
         if clazz is None:
             return None
         response_str = r.text
-        print(response_str)
         res: Union[BaseResponse, BaseModel] = clazz.parse_raw(response_str)
         if isinstance(res, BaseResponse) and res.code != 0:
             raise RuntimeError(f'code not ok: {res.message}')
@@ -98,7 +97,7 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
 def main():
     api = BilibiliApi()
     api.load_cookies()
-    info = api.live_play_url(LivePlayUrlRequest(cid=8915924))
+    info = api.search(SearchRequest(search_type=SearchType.MEDIA, keyword='惊天魔盗团'))
     print(info)
     api.close()
 
