@@ -285,8 +285,10 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
         return [BVideoModel.create_live_model(live) for live in resp.data.list]
 
     def media_user_collect(self) -> List[BriefAlbumModel]:
-        resp = self._api.media_bangumi_favlist(MediaFavlistRequest(vmid=int(self._user.identifier), ps=30))
-        return [BSearchModel.search_media_model(m) for m in resp.data.list]
+        resp1 = self._api.media_bangumi_favlist(MediaFavlistRequest(vmid=int(self._user.identifier), ps=30))
+        resp2 = self._api.media_bangumi_favlist(MediaFavlistRequest(vmid=int(self._user.identifier), ps=30, type=2))
+        return [BSearchModel.search_media_model(m) for m in resp1.data.list] +\
+               [BSearchModel.search_media_model(m) for m in resp2.data.list]
 
     def audio_playlist_get(self, identifier: str) -> Optional[BPlaylistModel]:
         _, type_, id_ = identifier.split('_')

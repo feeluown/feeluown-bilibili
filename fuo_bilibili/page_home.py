@@ -4,7 +4,6 @@ from feeluown.gui.base_renderer import LibraryTabRendererMixin
 from feeluown.gui.page_containers.table import Renderer
 from feeluown.gui.widgets import TextButton
 from feeluown.gui.widgets.tabbar import Tab
-from feeluown.utils import aio
 
 from fuo_bilibili import BilibiliProvider
 
@@ -61,7 +60,7 @@ class HomeRenderer(Renderer, LibraryTabRendererMixin):
         super().render_tabbar()
         try:
             self.tabbar.songs_btn.setText('首页推荐')
-            self.tabbar.albums_btn.setText('我的追番')
+            self.tabbar.albums_btn.setText('我的番剧/电影')
             self.tabbar.artists_btn.hide()
             self.tabbar.videos_btn.setText('订阅直播')
             self.tabbar.playlists_btn.hide()
