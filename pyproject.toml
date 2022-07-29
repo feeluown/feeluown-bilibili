@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "feeluown-bilibili"
-version = "0.1.0"
-description = ""
+version = "0.1.1"
+description = "Bilibili provider for FeelUOwn player."
 authors = ["Bruce Zhang <zttt183525594@gmail.com>"]
 packages = [{ include = "fuo_bilibili" }]
 include = ["fuo_bilibili/assets/icon.svg"]
