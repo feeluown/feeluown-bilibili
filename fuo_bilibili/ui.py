@@ -108,7 +108,6 @@ class BLoginDialog(QDialog):
     """
     登录框
     """
-
     def __init__(self, parent=None, provider=None):
         super(BLoginDialog, self).__init__(parent)
         self._captcha_id = None
@@ -163,13 +162,13 @@ class BLoginDialog(QDialog):
 
     def _start_auth(self):
         self._auth_dialog.setWindowTitle('密码登录验证')
-        self._auth_dialog.request_challenge_params('login')
         self._auth_dialog.show()
+        self._auth_dialog.request_challenge_params('login')
 
     def _start_auth_code(self):
         self._auth_dialog.setWindowTitle('发送验证码验证')
-        self._auth_dialog.request_challenge_params('sms')
         self._auth_dialog.show()
+        self._auth_dialog.request_challenge_params('sms')
 
     @staticmethod
     def exception_handler(func):

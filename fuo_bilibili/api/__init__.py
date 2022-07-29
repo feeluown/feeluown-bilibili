@@ -27,6 +27,8 @@ CACHE = LRUCache(30)
 
 class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin, UserMixin, AudioMixin, LiveMixin,
                   MediaMixin):
+    TIMEOUT = 10
+
     def __init__(self):
         self._cookie = MozillaCookieJar(PLUGIN_API_COOKIEJAR_FILE)
         self._session = requests.Session()
@@ -49,9 +51,9 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
             -> Union[BaseResponse, BaseModel, None]:
         print(f'Requesting: {url}...')
         if param is None:
-            r = self._session.get(url, **kwargs)
+            r = self._session.get(url, timeout=self.TIMEOUT, **kwargs)
         else:
-            r = self._session.get(url, params=json.loads(param.json(exclude_none=True)), **kwargs)
+            r = self._session.get(url, timeout=self.TIMEOUT, params=json.loads(param.json(exclude_none=True)), **kwargs)
         if r.status_code != 200:
             print(r.text)
             raise RuntimeError('http not 200')
@@ -75,13 +77,13 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
     def post(self, url: str, param: Optional[BaseRequest], clazz: Type[BaseResponse], is_json=False, **kwargs)\
             -> BaseResponse:
         if param is None:
-            r = self._session.post(url, **kwargs)
+            r = self._session.post(url, timeout=self.TIMEOUT, **kwargs)
         else:
             request = json.loads(param.json(exclude_none=True, by_alias=True))
             if is_json:
-                r = self._session.post(url, json=request, **kwargs)
+                r = self._session.post(url, timeout=self.TIMEOUT, json=request, **kwargs)
             else:
-                r = self._session.post(url, data=request, **kwargs)
+                r = self._session.post(url, timeout=self.TIMEOUT, data=request, **kwargs)
         if r.status_code != 200:
             raise RuntimeError(f'http not 200: {r.status_code}')
         response_str = r.text
