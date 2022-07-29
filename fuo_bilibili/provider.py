@@ -1,5 +1,5 @@
 import math
-from typing import List, Optional
+from typing import List, Optional, Union, Tuple
 
 from feeluown.excs import NoUserLoggedIn
 from feeluown.library import AbstractProvider, ProviderV2, ProviderFlags as Pf, UserModel, VideoModel, \
@@ -25,10 +25,10 @@ from fuo_bilibili.model import BSearchModel, BSongModel, BPlaylistModel, BArtist
 from fuo_bilibili.util import json_to_lrc_text
 
 SEARCH_TYPE_MAP = {
-    FuoSearchType.vi: BilibiliSearchType.LIVE_ROOM,
-    FuoSearchType.ar: BilibiliSearchType.BILI_USER,
-    FuoSearchType.so: BilibiliSearchType.VIDEO,
-    FuoSearchType.al: BilibiliSearchType.BANGUMI,
+    FuoSearchType.vi: BilibiliSearchType.LIVE_ROOM,  # 对应直播间
+    FuoSearchType.ar: BilibiliSearchType.BILI_USER,  # 对应B站用户
+    FuoSearchType.so: BilibiliSearchType.VIDEO,  # 对应投稿视频
+    FuoSearchType.al: (BilibiliSearchType.MEDIA, BilibiliSearchType.BANGUMI),  # 对应番剧电影
 }
 
 
@@ -53,10 +53,12 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
         self._video_cids = dict()
         self._video_avids = dict()
 
-    def _format_search_request(self, keyword, type_) -> SearchRequest:
+    def _format_search_request(self, keyword, type_) -> Union[SearchRequest, Tuple[SearchRequest]]:
         btype = SEARCH_TYPE_MAP.get(type_)
         if btype is None:
             raise NotImplementedError
+        if isinstance(btype, Tuple):
+            return tuple([SearchRequest(search_type=t, keyword=keyword) for t in btype])
         return SearchRequest(search_type=btype, keyword=keyword)
 
     def request_captcha(self) -> RequestCaptchaResponse.RequestCaptchaResponseData:
@@ -103,7 +105,10 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
 
     def search(self, keyword, type_, *args, **kwargs) -> Optional[BSearchModel]:
         request = self._format_search_request(keyword, type_)
-        response = self._api.search(request)
+        if isinstance(request, Tuple):
+            response = tuple([self._api.search(r) for r in request])
+        else:
+            response = self._api.search(request)
         return BSearchModel.create_model(request, response)
 
     def song_get(self, identifier) -> Optional[BSongModel]:

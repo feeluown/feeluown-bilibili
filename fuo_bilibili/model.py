@@ -1,4 +1,4 @@
-from typing import List, Union, Optional
+from typing import List, Union, Optional, Tuple
 
 from bs4 import BeautifulSoup
 from feeluown.library import SongModel, BriefArtistModel, PlaylistModel, BriefPlaylistModel, BriefUserModel, \
@@ -241,23 +241,32 @@ class BSearchModel(SearchModel):
         )
 
     @classmethod
-    def create_model(cls, request: SearchRequest, response: SearchResponse):
+    def create_model(cls, request: SearchRequest, response: Union[SearchResponse, Tuple[SearchResponse]]):
         songs = None
         artists = None
         videos = None
         albums = None
-        match request.search_type:
+        if isinstance(response, Tuple):
+            results = []
+            for r in response:
+                if r.data.result is None:
+                    continue
+                results += r.data.result
+        else:
+            results = response.data.result or []
+        # fixme: implements multiple search types
+        match SearchType.BANGUMI if isinstance(request, Tuple) else request.search_type:
             case SearchType.VIDEO:
-                songs = list(map(lambda r: BSongModel.create_model(r), response.data.result))
+                songs = list(map(lambda r_: BSongModel.create_model(r_), results))
             case SearchType.BILI_USER:
-                artists = list(map(cls.search_user_model, response.data.result))
+                artists = list(map(cls.search_user_model, results))
             case SearchType.LIVE_ROOM:
-                videos = list(map(cls.search_live_model, response.data.result))
+                videos = list(map(cls.search_live_model, results))
             case SearchType.BANGUMI:
-                albums = list(map(cls.search_media_model, response.data.result))
+                albums = list(map(cls.search_media_model, results))
         return cls(
             source=PROVIDER_ID,
-            q=request.keyword,
+            q=request[0].keyword if isinstance(request, Tuple) else request.keyword,
             songs=songs,
             artists=artists,
             videos=videos,

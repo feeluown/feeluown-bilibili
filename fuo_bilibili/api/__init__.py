@@ -100,7 +100,7 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
 def main():
     api = BilibiliApi()
     api.load_cookies()
-    info = api.media_bangumi_favlist(MediaFavlistRequest(vmid=7844164, ps=30))
+    info = api.search(SearchRequest(search_type=SearchType.MEDIA, keyword='惊天魔盗团'))
     print(info)
     api.close()
 

@@ -253,7 +253,8 @@ class SearchResponse(BaseResponse):
         exp_list: dict = None
         egg_hit: int
         pageinfo: dict = None
-        result: Union[List[Union[SearchResultVideo, SearchResultUser, SearchResultLiveRoom, SearchResultMedia]], dict]  # 搜索结果 todo: obj
+        result: Union[List[Union[SearchResultVideo, SearchResultUser,
+                                 SearchResultLiveRoom, SearchResultMedia]], dict] = None
         show_column: int
 
     data: SearchResponseData = None
