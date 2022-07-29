@@ -17,6 +17,7 @@ pycryptodomex = "*"
 pytest = "*"
 PyQt5 = "*"
 feeluown = { git = "https://github.com/feeluown/FeelUOwn.git", branch = "master" }
+fuo-dl = "^0.3"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
