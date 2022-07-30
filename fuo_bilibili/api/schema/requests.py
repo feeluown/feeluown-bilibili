@@ -190,3 +190,10 @@ class FavoriteResourceOperateRequest(BaseRequest):
     type: int = 2
     add_media_ids: str = ''
     del_media_ids: str = ''
+
+
+class FavoriteNewRequest(BaseCsrfRequest):
+    title: str
+    intro: str
+    privacy: int
+    cover: str = ''

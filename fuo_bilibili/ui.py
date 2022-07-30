@@ -4,7 +4,8 @@ from pathlib import Path
 from typing import Optional
 
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtWidgets import QDialog, QLineEdit, QVBoxLayout, QPushButton, QLabel, QFrame, QTabWidget, QMessageBox
+from PyQt5.QtWidgets import QDialog, QLineEdit, QVBoxLayout, QPushButton, QLabel, QFrame, QTabWidget, QMessageBox, \
+    QAction, QInputDialog
 from feeluown.app.gui_app import GuiApp
 from feeluown.gui import ProviderUiManager
 from feeluown.library import UserModel
@@ -248,7 +249,29 @@ class BUiManager:
         self._pvd_item.clicked.connect(self._login_or_get_user)
         self._pvd_uimgr.add_item(self._pvd_item)
         self.login_dialog = BLoginDialog(None, self._provider)
+        # 新建收藏夹
+        pl_header = self._app.ui.left_panel.playlists_header
+        pl_header.setContextMenuPolicy(Qt.ActionsContextMenu)
+        new_pl_action = QAction('新建收藏夹', pl_header)
+        pl_header.addAction(new_pl_action)
+        # noinspection PyUnresolvedReferences
+        new_pl_action.triggered.connect(self.new_playlist)
         self._initial_pages()
+
+    def new_playlist(self):
+        name, o1 = QInputDialog.getText(self._app.ui.left_panel.playlists_header, '新建收藏夹', '收藏夹标题')
+        if not o1:
+            return
+        desc, o2 = QInputDialog.getText(self._app.ui.left_panel.playlists_header, '新建收藏夹', '收藏夹简介')
+        if not o2:
+            return
+        privacy, o3 = QInputDialog.getItem(self._app.ui.left_panel.playlists_header, '新建收藏夹', '歌单权限', ['公开', '私有'])
+        if not o3:
+            return
+        try:
+            self._provider.user_playlist_new(name, desc, 1 if privacy == '私有' else 0)
+        except Exception as e:
+            QMessageBox.warning(self._app.ui.left_panel.playlists_header, '新建收藏夹失败', str(e))
 
     def _initial_pages(self):
         from fuo_bilibili.page_home import render as home_render

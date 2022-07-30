@@ -18,7 +18,7 @@ from fuo_bilibili.api.schema.requests import PasswordLoginRequest, SendSmsCodeRe
     FavoriteSeasonResourceRequest, PaginatedRequest, HomeRecommendVideosRequest, HomeDynamicVideoRequest, \
     UserInfoRequest, UserBestVideoRequest, UserVideoRequest, AudioFavoriteSongsRequest, AudioGetUrlRequest, \
     VideoHotCommentsRequest, AnotherPaginatedRequest, LivePlayUrlRequest, MediaGetListRequest, MediaFavlistRequest, \
-    HistoryAddLaterVideosRequest, HistoryDelLaterVideosRequest, FavoriteResourceOperateRequest
+    HistoryAddLaterVideosRequest, HistoryDelLaterVideosRequest, FavoriteResourceOperateRequest, FavoriteNewRequest
 from fuo_bilibili.api.schema.responses import RequestCaptchaResponse, RequestLoginKeyResponse, PasswordLoginResponse, \
     SendSmsCodeResponse, SmsCodeLoginResponse, NavInfoResponse, PlayUrlResponse
 from fuo_bilibili.model import BSearchModel, BSongModel, BPlaylistModel, BArtistModel, BCommentModel, BVideoModel, \
@@ -300,6 +300,9 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
     def user_playlists(self, identifier) -> List[BriefPlaylistModel]:
         resp = self._api.favorite_list(FavoriteListRequest(up_mid=int(identifier)))
         return BPlaylistModel.create_model_list(resp)
+
+    def user_playlist_new(self, title: str, intro: str, privacy: int = None):
+        return self._api.favorite_new(FavoriteNewRequest(title=title, intro=intro, privacy=privacy))
 
     def fav_playlists(self, identifier) -> List[BriefPlaylistModel]:
         resp = self._api.collected_favorite_list(CollectedFavoriteListRequest(up_mid=int(identifier), ps=40))

@@ -3,7 +3,8 @@ from typing import Type, Any, Optional, Union, List
 from pydantic import BaseModel
 
 from fuo_bilibili.api.schema.requests import BaseRequest, FavoriteListRequest, FavoriteInfoRequest, \
-    FavoriteResourceRequest, CollectedFavoriteListRequest, FavoriteSeasonResourceRequest, FavoriteResourceOperateRequest
+    FavoriteResourceRequest, CollectedFavoriteListRequest, FavoriteSeasonResourceRequest, \
+    FavoriteResourceOperateRequest, FavoriteNewRequest
 from fuo_bilibili.api.schema.responses import BaseResponse, FavoriteListResponse, FavoriteInfoResponse, \
     FavoriteResourceResponse, CollectedFavoriteListResponse, FavoriteSeasonResourceResponse
 
@@ -45,3 +46,8 @@ class PlaylistMixin:
     def favorite_resource_operate(self, request: FavoriteResourceOperateRequest) -> BaseResponse:
         url = f'{self.APIX_BASE}/v3/fav/resource/deal'
         return self.get(url, request, BaseResponse)
+
+    def favorite_new(self, request: FavoriteNewRequest) -> BaseResponse:
+        url = f'{self.APIX_BASE}/v3/fav/folder/add'
+        self.clear_cache_by_url([f'{self.APIX_BASE}/v3/fav/folder/created/list-all'])
+        return self.post(url, request, BaseResponse)
