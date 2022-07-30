@@ -40,6 +40,8 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
             case 'LATER':
                 self._api.history_add_later_videos(HistoryAddLaterVideosRequest(bvid=song.identifier))
                 return True
+            case 'HISTORY':
+                return False
         self._api.favorite_resource_operate(FavoriteResourceOperateRequest(
             rid=self._get_video_avid(song.identifier),
             add_media_ids=str(playlist.identifier)
@@ -51,6 +53,8 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
             case 'LATER':
                 self._api.history_del_later_videos(HistoryDelLaterVideosRequest(aid=self._get_video_avid(song.identifier)))
                 return True
+            case 'HISTORY':
+                return False
         self._api.favorite_resource_operate(FavoriteResourceOperateRequest(
             rid=self._get_video_avid(song.identifier),
             del_media_ids=str(playlist.identifier)
