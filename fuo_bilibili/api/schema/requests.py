@@ -183,3 +183,10 @@ class HistoryAddLaterVideosRequest(BaseCsrfRequest):
 
 class HistoryDelLaterVideosRequest(BaseCsrfRequest):
     aid: int
+
+
+class FavoriteResourceOperateRequest(BaseRequest):
+    rid: int
+    type: int = 2
+    add_media_ids: str = ''
+    del_media_ids: str = ''

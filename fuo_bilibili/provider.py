@@ -18,7 +18,7 @@ from fuo_bilibili.api.schema.requests import PasswordLoginRequest, SendSmsCodeRe
     FavoriteSeasonResourceRequest, PaginatedRequest, HomeRecommendVideosRequest, HomeDynamicVideoRequest, \
     UserInfoRequest, UserBestVideoRequest, UserVideoRequest, AudioFavoriteSongsRequest, AudioGetUrlRequest, \
     VideoHotCommentsRequest, AnotherPaginatedRequest, LivePlayUrlRequest, MediaGetListRequest, MediaFavlistRequest, \
-    HistoryAddLaterVideosRequest, HistoryDelLaterVideosRequest
+    HistoryAddLaterVideosRequest, HistoryDelLaterVideosRequest, FavoriteResourceOperateRequest
 from fuo_bilibili.api.schema.responses import RequestCaptchaResponse, RequestLoginKeyResponse, PasswordLoginResponse, \
     SendSmsCodeResponse, SmsCodeLoginResponse, NavInfoResponse, PlayUrlResponse
 from fuo_bilibili.model import BSearchModel, BSongModel, BPlaylistModel, BArtistModel, BCommentModel, BVideoModel, \
@@ -40,14 +40,22 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
             case 'LATER':
                 self._api.history_add_later_videos(HistoryAddLaterVideosRequest(bvid=song.identifier))
                 return True
-        raise NotImplementedError
+        self._api.favorite_resource_operate(FavoriteResourceOperateRequest(
+            rid=self._get_video_avid(song.identifier),
+            add_media_ids=str(playlist.identifier)
+        ))
+        return True
 
     def playlist_remove_song(self, playlist, song) -> bool:
         match playlist.identifier:
             case 'LATER':
                 self._api.history_del_later_videos(HistoryDelLaterVideosRequest(aid=self._get_video_avid(song.identifier)))
                 return True
-        raise NotImplementedError
+        self._api.favorite_resource_operate(FavoriteResourceOperateRequest(
+            rid=self._get_video_avid(song.identifier),
+            del_media_ids=str(playlist.identifier)
+        ))
+        return True
 
     # noinspection PyPep8Naming
     class meta:

@@ -1,9 +1,9 @@
-from typing import Type, Any, Optional, Union
+from typing import Type, Any, Optional, Union, List
 
 from pydantic import BaseModel
 
 from fuo_bilibili.api.schema.requests import BaseRequest, FavoriteListRequest, FavoriteInfoRequest, \
-    FavoriteResourceRequest, CollectedFavoriteListRequest, FavoriteSeasonResourceRequest
+    FavoriteResourceRequest, CollectedFavoriteListRequest, FavoriteSeasonResourceRequest, FavoriteResourceOperateRequest
 from fuo_bilibili.api.schema.responses import BaseResponse, FavoriteListResponse, FavoriteInfoResponse, \
     FavoriteResourceResponse, CollectedFavoriteListResponse, FavoriteSeasonResourceResponse
 
@@ -16,6 +16,10 @@ class PlaylistMixin:
         pass
 
     def post(self, url: str, param: Optional[BaseRequest], clazz: Type[BaseResponse], is_json=False, **kwargs) -> Any:
+        pass
+
+    @staticmethod
+    def clear_cache_by_url(urls: List[str]):
         pass
 
     def favorite_list(self, request: FavoriteListRequest) -> FavoriteListResponse:
@@ -37,3 +41,7 @@ class PlaylistMixin:
     def favorite_season_resource(self, request: FavoriteSeasonResourceRequest) -> FavoriteSeasonResourceResponse:
         url = f'{self.APIX_BASE}/space/fav/season/list'
         return self.get(url, request, FavoriteSeasonResourceResponse)
+
+    def favorite_resource_operate(self, request: FavoriteResourceOperateRequest) -> BaseResponse:
+        url = f'{self.APIX_BASE}/v3/fav/resource/deal'
+        return self.get(url, request, BaseResponse)
