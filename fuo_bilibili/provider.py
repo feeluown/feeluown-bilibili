@@ -4,7 +4,7 @@ from typing import List, Optional, Union, Tuple
 from feeluown.excs import NoUserLoggedIn
 from feeluown.library import AbstractProvider, ProviderV2, ProviderFlags as Pf, UserModel, VideoModel, \
     BriefPlaylistModel, BriefSongModel, LyricModel, SupportsSongSimilar, BriefSongProtocol, SupportsSongHotComments, \
-    BriefCommentModel, BriefVideoModel, SupportsAlbumGet, BriefAlbumModel
+    SupportsAlbumGet, BriefAlbumModel, SupportsPlaylistAddSong, SupportsPlaylistRemoveSong
 from feeluown.media import Quality, Media, MediaType
 from feeluown.models import SearchType as FuoSearchType, ModelType
 from feeluown.utils.reader import SequentialReader
@@ -17,7 +17,8 @@ from fuo_bilibili.api.schema.requests import PasswordLoginRequest, SendSmsCodeRe
     FavoriteListRequest, FavoriteInfoRequest, FavoriteResourceRequest, CollectedFavoriteListRequest, \
     FavoriteSeasonResourceRequest, PaginatedRequest, HomeRecommendVideosRequest, HomeDynamicVideoRequest, \
     UserInfoRequest, UserBestVideoRequest, UserVideoRequest, AudioFavoriteSongsRequest, AudioGetUrlRequest, \
-    VideoHotCommentsRequest, AnotherPaginatedRequest, LivePlayUrlRequest, MediaGetListRequest, MediaFavlistRequest
+    VideoHotCommentsRequest, AnotherPaginatedRequest, LivePlayUrlRequest, MediaGetListRequest, MediaFavlistRequest, \
+    HistoryAddLaterVideosRequest, HistoryDelLaterVideosRequest
 from fuo_bilibili.api.schema.responses import RequestCaptchaResponse, RequestLoginKeyResponse, PasswordLoginResponse, \
     SendSmsCodeResponse, SmsCodeLoginResponse, NavInfoResponse, PlayUrlResponse
 from fuo_bilibili.model import BSearchModel, BSongModel, BPlaylistModel, BArtistModel, BCommentModel, BVideoModel, \
@@ -32,7 +33,22 @@ SEARCH_TYPE_MAP = {
 }
 
 
-class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, SupportsSongHotComments, SupportsAlbumGet):
+class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, SupportsSongHotComments, SupportsAlbumGet,
+                       SupportsPlaylistAddSong, SupportsPlaylistRemoveSong):
+    def playlist_add_song(self, playlist, song) -> bool:
+        match playlist.identifier:
+            case 'LATER':
+                self._api.history_add_later_videos(HistoryAddLaterVideosRequest(bvid=song.identifier))
+                return True
+        raise NotImplementedError
+
+    def playlist_remove_song(self, playlist, song) -> bool:
+        match playlist.identifier:
+            case 'LATER':
+                self._api.history_del_later_videos(HistoryDelLaterVideosRequest(aid=self._get_video_avid(song.identifier)))
+                return True
+        raise NotImplementedError
+
     # noinspection PyPep8Naming
     class meta:
         identifier: str = __identifier__
@@ -40,7 +56,7 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
         flags: dict = {
             ModelType.song: (Pf.model_v2 | Pf.get | Pf.multi_quality | Pf.lyric | Pf.mv | Pf.similar | Pf.hot_comments),
             ModelType.video: (Pf.model_v2 | Pf.multi_quality | Pf.get),
-            ModelType.playlist: (Pf.model_v2 | Pf.get | Pf.songs_rd),
+            ModelType.playlist: (Pf.model_v2 | Pf.get | Pf.songs_rd | Pf.add_song | Pf.remove_song),
             ModelType.artist: (Pf.model_v2 | Pf.get | Pf.songs_rd),
             ModelType.album: (Pf.model_v2 | Pf.get),
         }

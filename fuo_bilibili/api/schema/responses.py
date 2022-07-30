@@ -536,7 +536,7 @@ class HistoryLaterVideoResponse(BaseResponse):
             bvid: str
 
         count: int
-        list: List[LaterItem]
+        list: List[LaterItem] = None
 
     data: HistoryLaterVideoResponseData = None
 

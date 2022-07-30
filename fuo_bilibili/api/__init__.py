@@ -1,9 +1,10 @@
 import json
+from datetime import timedelta
 from http.cookiejar import MozillaCookieJar
-from typing import Type, Optional, Union
+from typing import Type, Optional, Union, List
 
 import requests.cookies
-from cachetools import LRUCache, cached
+from cachetools import TTLCache, cached
 from pydantic import BaseModel
 
 from fuo_bilibili.api.audio import AudioMixin
@@ -16,13 +17,13 @@ from fuo_bilibili.api.playlist import PlaylistMixin
 from fuo_bilibili.api.schema.enums import VideoQualityNum, SearchType
 from fuo_bilibili.api.schema.requests import BaseRequest, VideoInfoRequest, PlayUrlRequest, SearchRequest, \
     FavoriteListRequest, PaginatedRequest, AudioFavoriteSongsRequest, AnotherPaginatedRequest, LivePlayUrlRequest, \
-    MediaFavlistRequest
+    MediaFavlistRequest, HistoryAddLaterVideosRequest, BaseCsrfRequest, HistoryDelLaterVideosRequest
 from fuo_bilibili.api.schema.responses import BaseResponse
 from fuo_bilibili.api.user import UserMixin
 from fuo_bilibili.api.video import VideoMixin
 from fuo_bilibili.const import PLUGIN_API_COOKIEJAR_FILE
 
-CACHE = LRUCache(30)
+CACHE = TTLCache(50, ttl=timedelta(minutes=10).total_seconds())
 
 
 class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin, UserMixin, AudioMixin, LiveMixin,
@@ -46,6 +47,21 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
     def _dump_cookie_to_file(self):
         print('dumping cookies to file')
         self._cookie.save()
+
+    @staticmethod
+    def clear_cache_by_url(urls: List[str]):
+        for key in CACHE.keys():
+            if len(key) < 2:
+                continue
+            url = key[1]
+            if url in urls:
+                CACHE.pop(key)
+
+    def _get_csrf(self):
+        for cookie in self._cookie:
+            if cookie.name == 'bili_jct':
+                return cookie.value
+        raise RuntimeError('bili_jct not found')
 
     def get_uncached(self, url: str, param: Optional[BaseRequest], clazz: Union[Type[BaseResponse], Type[BaseModel], None], **kwargs) \
             -> Union[BaseResponse, BaseModel, None]:
@@ -79,6 +95,8 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
         if param is None:
             r = self._session.post(url, timeout=self.TIMEOUT, **kwargs)
         else:
+            if isinstance(param, BaseCsrfRequest):
+                param.csrf = self._get_csrf()
             request = json.loads(param.json(exclude_none=True, by_alias=True))
             if is_json:
                 r = self._session.post(url, timeout=self.TIMEOUT, json=request, **kwargs)
@@ -102,7 +120,9 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
 def main():
     api = BilibiliApi()
     api.load_cookies()
-    info = api.search(SearchRequest(search_type=SearchType.MEDIA, keyword='惊天魔盗团'))
+    # info = api.history_later_videos()
+    # info = api.history_add_later_videos(HistoryAddLaterVideosRequest(bvid='BV1RN4y1j7k6'))
+    info = api.history_del_later_videos(HistoryDelLaterVideosRequest(aid=770771658))
     print(info)
     api.close()
 

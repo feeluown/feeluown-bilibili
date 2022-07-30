@@ -171,3 +171,15 @@ class MediaGetListRequest(BaseRequest):
 class MediaFavlistRequest(PaginatedRequest):
     vmid: int
     type: int = 1
+
+
+class BaseCsrfRequest(BaseRequest):
+    csrf: str = ''
+
+
+class HistoryAddLaterVideosRequest(BaseCsrfRequest):
+    bvid: str
+
+
+class HistoryDelLaterVideosRequest(BaseCsrfRequest):
+    aid: int

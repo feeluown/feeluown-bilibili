@@ -163,6 +163,8 @@ class BSongModel(SongModel):
 
     @classmethod
     def create_history_brief_model_list(cls, resp: HistoryLaterVideoResponse) -> List[BriefSongModel]:
+        if resp.data.list is None:
+            return []
         return [cls.create_history_brief_model(media) for media in resp.data.list]
 
 
