@@ -42,6 +42,8 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
                 return True
             case 'HISTORY':
                 return False
+        if playlist.identifier.startswith('audio_') or song.identifier.startswith('audio_'):
+            return False
         self._api.favorite_resource_operate(FavoriteResourceOperateRequest(
             rid=self._get_video_avid(song.identifier),
             add_media_ids=str(playlist.identifier)
@@ -55,6 +57,8 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
                 return True
             case 'HISTORY':
                 return False
+        if playlist.identifier.startswith('audio_') or song.identifier.startswith('audio_'):
+            return False
         self._api.favorite_resource_operate(FavoriteResourceOperateRequest(
             rid=self._get_video_avid(song.identifier),
             del_media_ids=str(playlist.identifier)
