@@ -77,7 +77,6 @@ description = "*nix music player"
 category = "main"
 optional = false
 python-versions = ">=3.8"
-develop = false
 
 [package.dependencies]
 janus = "*"
@@ -90,15 +89,9 @@ tomlkit = "*"
 [package.extras]
 battery = ["fuo-local (>=0.2.1)", "fuo-netease (>=0.4.2)", "fuo-qqmusic (>=0.2)", "fuo-kuwo (>=0.1.1)"]
 dev = ["flake8", "pylint", "mypy", "pyqt5-stubs", "pytest (>=5.4.0)", "pytest-runner", "pytest-cov", "pytest-asyncio", "pytest-qt", "pytest-mock", "pytest-benchmark (>=3.4.1)", "sphinx", "sphinx-rtd-theme"]
-macos = ["pyobjc-framework-cocoa", "pyobjc-framework-quartz"]
+macOS = ["pyobjc-framework-cocoa", "pyobjc-framework-quartz"]
 webengine = ["pyqtwebengine"]
 win32 = ["pyshortcuts"]
-
-[package.source]
-type = "git"
-url = "https://github.com/feeluown/FeelUOwn.git"
-reference = "master"
-resolved_reference = "993365d01839a86de715ab1a580c31df55763bad"
 
 [[package]]
 name = "fuo-dl"
@@ -327,7 +320,7 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "1abb912feee23dd83aeb325253bf1570d91075eca5975b5745a494951922dfec"
+content-hash = "4584de88c65ca1d872b0693e28090e993e248e1b796c45ee70ccdfbf6145e4a6"
 
 [metadata.files]
 atomicwrites = [
@@ -357,7 +350,9 @@ colorama = [
     {file = "colorama-0.4.5-py2.py3-none-any.whl", hash = "sha256:854bf444933e37f5824ae7bfc1e98d5bce2ebe4160d46b5edf346a89358e99da"},
     {file = "colorama-0.4.5.tar.gz", hash = "sha256:e6c6b4334fc50988a639d9b98aa429a0b57da6e17b9a44f0451f930b6967b7a4"},
 ]
-feeluown = []
+feeluown = [
+    {file = "feeluown-3.8.7.tar.gz", hash = "sha256:b79266138e6d640337d6cb0766af2007ed1ef40f598bb14b580dc83683c40021"},
+]
 fuo-dl = [
     {file = "fuo_dl-0.3.tar.gz", hash = "sha256:2cf903eab6930083dd3cd6a2a8482101c976a37b4bf4214257668bfd03249539"},
 ]
