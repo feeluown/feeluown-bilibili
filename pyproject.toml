@@ -8,7 +8,7 @@ include = ["fuo_bilibili/assets/icon.svg"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-feeluown = "*"
+feeluown = ">=3.8.7"
 cachetools = "*"
 beautifulsoup4 = "*"
 pycryptodomex = "*"
@@ -16,7 +16,6 @@ pycryptodomex = "*"
 [tool.poetry.dev-dependencies]
 pytest = "*"
 PyQt5 = "*"
-feeluown = { git = "https://github.com/feeluown/FeelUOwn.git", branch = "master" }
 fuo-dl = "^0.3"
 
 [build-system]
