@@ -5,7 +5,7 @@ from feeluown.excs import NoUserLoggedIn
 from feeluown.library import AbstractProvider, ProviderV2, ProviderFlags as Pf, UserModel, VideoModel, \
     BriefPlaylistModel, BriefSongModel, LyricModel, SupportsSongSimilar, BriefSongProtocol, SupportsSongHotComments, \
     SupportsAlbumGet, BriefAlbumModel, SupportsPlaylistAddSong, SupportsPlaylistRemoveSong
-from feeluown.media import Quality, Media, MediaType
+from feeluown.media import Quality, Media, MediaType, VideoAudioManifest
 from feeluown.models import SearchType as FuoSearchType, ModelType
 from feeluown.utils.reader import SequentialReader
 
@@ -236,16 +236,25 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
                 return None
             return Media(resp.data.durl[0].url, format='m3u8',
                          http_headers={'Referer': 'https://www.bilibili.com/'})
+        response = self._api.video_get_url(PlayUrlRequest(
+            bvid=video.identifier,
+            qn=VideoQualityNum.q1080p60,
+            cid=self._get_video_cid(video.identifier),
+            fnval=VideoFnval.DASH
+        ))
+        # select audio
+        audios = sorted(response.data.dash.audio, key=lambda a: a.bandwidth, reverse=True)
+        if audios is None or len(audios) == 0:
+            return None
+        # select video
+        print(response.data.dash.video)
         max_quality_code = VideoQualityNum.get_max_from_quality(quality)
         select_quality = max(filter(lambda c: c.value <= max_quality_code, self._video_quality_codes[video.identifier]),
                              key=lambda c: c.value)
-        response = self._api.video_get_url(PlayUrlRequest(
-            bvid=video.identifier,
-            qn=VideoQualityNum(select_quality),
-            cid=self._get_video_cid(video.identifier),
-            fnval=VideoFnval.FLV
-        ))
-        return Media(response.data.durl[0].url, format='flv',
+        videos = sorted(filter(lambda a: a.id <= select_quality.value, response.data.dash.video), key=lambda a: a.id, reverse=True)
+        if videos is None or len(videos) == 0:
+            return None
+        return Media(VideoAudioManifest(videos[0].base_url, audios[0].base_url), format='flv',
                      http_headers={'Referer': 'https://www.bilibili.com/'})
 
     def song_list_quality(self, song) -> List[Quality.Audio]:
@@ -283,7 +292,6 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
             fnval=VideoFnval.DASH
         ))
         audios = sorted(response.data.dash.audio, key=lambda a: a.bandwidth, reverse=True)
-        print(quality, audios)
         selects: Optional[List[PlayUrlResponse.PlayUrlResponseData.Dash.DashItem]] = None
         match quality:
             case Quality.Audio.lq:
