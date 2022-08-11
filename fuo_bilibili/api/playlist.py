@@ -45,7 +45,7 @@ class PlaylistMixin:
 
     def favorite_resource_operate(self, request: FavoriteResourceOperateRequest) -> BaseResponse:
         url = f'{self.APIX_BASE}/v3/fav/resource/deal'
-        return self.get(url, request, BaseResponse)
+        return self.post(url, request, BaseResponse)
 
     def favorite_new(self, request: FavoriteNewRequest) -> BaseResponse:
         url = f'{self.APIX_BASE}/v3/fav/folder/add'
