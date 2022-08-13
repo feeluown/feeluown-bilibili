@@ -21,7 +21,7 @@ from fuo_bilibili.api.schema.requests import BaseRequest, VideoInfoRequest, Play
 from fuo_bilibili.api.schema.responses import BaseResponse
 from fuo_bilibili.api.user import UserMixin
 from fuo_bilibili.api.video import VideoMixin
-from fuo_bilibili.const import PLUGIN_API_COOKIEJAR_FILE
+from fuo_bilibili.const import PLUGIN_API_COOKIEJAR_FILE, DANMAKU_DIRECTORY
 
 CACHE = TTLCache(50, ttl=timedelta(minutes=10).total_seconds())
 
@@ -90,6 +90,10 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
     def get_content(self, url: str) -> str:
         return self._session.get(url).text
 
+    @cached(CACHE)
+    def get_content_raw(self, url: str) -> bytes:
+        return self._session.get(url).content
+
     def post(self, url: str, param: Optional[BaseRequest], clazz: Type[BaseResponse], is_json=False, **kwargs)\
             -> BaseResponse:
         if param is None:
@@ -122,8 +126,13 @@ def main():
     api.load_cookies()
     # info = api.history_later_videos()
     # info = api.history_add_later_videos(HistoryAddLaterVideosRequest(bvid='BV1RN4y1j7k6'))
-    info = api.history_del_later_videos(HistoryDelLaterVideosRequest(aid=770771658))
-    print(info)
+    data = api.get_content_raw('https://comment.bilibili.com/781870756.xml')
+    with (DANMAKU_DIRECTORY / '781870756.xml').open('wb') as f:
+        f.write(data)
+        f.flush()
+    from fuo_bilibili.danmaku2ass import Danmaku2ASS
+    Danmaku2ASS((DANMAKU_DIRECTORY / '781870756.xml').as_posix(), 'autodetect',
+                (DANMAKU_DIRECTORY / '781870756.ass').as_posix(), 1920, 1080)
     api.close()
 
 

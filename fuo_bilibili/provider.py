@@ -1,4 +1,7 @@
 import math
+from inspect import signature
+from pathlib import Path
+from time import time
 from typing import List, Optional, Union, Tuple
 
 from feeluown.excs import NoUserLoggedIn
@@ -21,6 +24,8 @@ from fuo_bilibili.api.schema.requests import PasswordLoginRequest, SendSmsCodeRe
     HistoryAddLaterVideosRequest, HistoryDelLaterVideosRequest, FavoriteResourceOperateRequest, FavoriteNewRequest
 from fuo_bilibili.api.schema.responses import RequestCaptchaResponse, RequestLoginKeyResponse, PasswordLoginResponse, \
     SendSmsCodeResponse, SmsCodeLoginResponse, NavInfoResponse, PlayUrlResponse
+from fuo_bilibili.const import DANMAKU_DIRECTORY
+from fuo_bilibili.danmaku2ass import Danmaku2ASS
 from fuo_bilibili.model import BSearchModel, BSongModel, BPlaylistModel, BArtistModel, BCommentModel, BVideoModel, \
     BAlbumModel
 from fuo_bilibili.util import json_to_lrc_text
@@ -204,6 +209,10 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
             cid = info.data.cid
         return cid
 
+    def _get_video_dimension(self, bvid):
+        info = self._api.video_get_info(VideoInfoRequest(bvid=bvid))
+        return info.data.dimension.width, info.data.dimension.height
+
     def video_list_quality(self, video) -> List[Quality.Video]:
         if video.identifier.startswith('live_'):
             return [Quality.Video.hd]
@@ -229,6 +238,32 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
             cover=''
         )
 
+    def _get_video_danmaku(self, cid, bvid) -> Optional[Path]:
+        # find existed ass file
+        for p in DANMAKU_DIRECTORY.glob(f'{cid}.ass'):
+            if p.is_file() and time() - p.stat().st_mtime < 300:
+                return p
+        # find existed xml file
+        for p in DANMAKU_DIRECTORY.glob(f'{cid}.xml'):
+            if p.is_file() and time() - p.stat().st_mtime < 300:
+                width, height = self._get_video_dimension(bvid)
+                target_file = p.with_suffix('.ass')
+                font_size = 50 / 1080 * height
+                Danmaku2ASS(p.as_posix(), 'autodetect', target_file.as_posix(), width, height, font_size=font_size)
+                return target_file
+        # get latest danmuku and transform to ass
+        data = self._api.get_content_raw(f'https://comment.bilibili.com/{cid}.xml')
+        xml_file = DANMAKU_DIRECTORY / f'{cid}.xml'
+        xml_file.unlink(missing_ok=True)
+        with xml_file.open('wb') as f:
+            f.write(data)
+            f.flush()
+        target_file = xml_file.with_suffix('.ass')
+        width, height = self._get_video_dimension(bvid)
+        font_size = 50 / 1080 * height
+        Danmaku2ASS(xml_file.as_posix(), 'autodetect', target_file.as_posix(), width, height, font_size=font_size)
+        return target_file
+
     def video_get_media(self, video, quality: Quality.Video) -> Optional[Media]:
         if video.identifier.startswith('live_'):
             _, id_ = video.identifier.split('_')
@@ -237,10 +272,11 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
                 return None
             return Media(resp.data.durl[0].url, format='m3u8',
                          http_headers={'Referer': 'https://www.bilibili.com/'})
+        video_cid = self._get_video_cid(video.identifier)
         response = self._api.video_get_url(PlayUrlRequest(
             bvid=video.identifier,
             qn=VideoQualityNum.q1080p60,
-            cid=self._get_video_cid(video.identifier),
+            cid=video_cid,
             fnval=VideoFnval.DASH
         ))
         # select audio
@@ -255,8 +291,14 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
         videos = sorted(filter(lambda a: a.id <= select_quality.value, response.data.dash.video), key=lambda a: a.id, reverse=True)
         if videos is None or len(videos) == 0:
             return None
-        return Media(VideoAudioManifest(videos[0].base_url, audios[0].base_url), format='flv',
-                     http_headers={'Referer': 'https://www.bilibili.com/'})
+        danmaku_path = self._get_video_danmaku(video_cid, video.identifier)
+        if not danmaku_path.exists():
+            danmaku_path = None
+        if len(signature(VideoAudioManifest).parameters) == 3:
+            manifest = VideoAudioManifest(videos[0].base_url, audios[0].base_url, danmaku_path.as_posix() if danmaku_path is not None else None)
+        else:
+            manifest = VideoAudioManifest(videos[0].base_url, audios[0].base_url)
+        return Media(manifest, format='flv', http_headers={'Referer': 'https://www.bilibili.com/'})
 
     def song_list_quality(self, song) -> List[Quality.Audio]:
         if song.identifier.startswith('audio_'):
@@ -487,3 +529,8 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
 
     def __del__(self):
         self.close()
+
+
+if __name__ == '__main__':
+    from inspect import signature
+    print(len(signature(VideoAudioManifest).parameters))
