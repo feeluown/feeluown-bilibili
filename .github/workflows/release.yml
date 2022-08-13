@@ -27,3 +27,7 @@ jobs:
       - name: Upload release
         if: ${{ github.ref_name == steps.pkgver.outputs.version }}
         run: poetry publish -u __token__ -p ${{ secrets.PYPI_RELEASE_API_TOKEN }}
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1.10.0
+        with:
+          artifacts: "dist/*.whl,dist/*.tar.gz"
