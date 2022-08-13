@@ -1,0 +1,29 @@
+name: Build package
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.10'
+      - uses: abatilo/actions-poetry@v2.0.0
+        with:
+          poetry-version: '1.1.14'
+      - name: Clean dist folder
+        run: rm -rf dist
+      - name: Install dependencies
+        run: poetry install
+      - id: pkgver
+        name: Get package version
+        run: echo ::set-output name=version::$(poetry version -s)
+      - name: Build package
+        run: poetry build
+      - name: Upload release
+      - if: ${{ github.ref_name == steps.pkgver.outputs.version }}
+        run: poetry publish -u __token__ -p ${{ secrets.PYPI_RELEASE_API_TOKEN }}
