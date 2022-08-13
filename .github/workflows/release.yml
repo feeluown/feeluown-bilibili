@@ -25,5 +25,5 @@ jobs:
       - name: Build package
         run: poetry build
       - name: Upload release
-      - if: ${{ github.ref_name == steps.pkgver.outputs.version }}
+        if: ${{ github.ref_name == steps.pkgver.outputs.version }}
         run: poetry publish -u __token__ -p ${{ secrets.PYPI_RELEASE_API_TOKEN }}
