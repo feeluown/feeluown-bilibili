@@ -31,3 +31,4 @@ jobs:
         uses: ncipollo/release-action@v1.10.0
         with:
           artifacts: "dist/*.whl,dist/*.tar.gz"
+          bodyFile: "BODY.md"
