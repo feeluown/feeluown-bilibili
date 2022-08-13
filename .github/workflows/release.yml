@@ -1,4 +1,4 @@
-name: Build package
+name: Release package
 on:
   push:
     tags:
