@@ -7,7 +7,8 @@ from typing import List, Optional, Union, Tuple
 from feeluown.excs import NoUserLoggedIn
 from feeluown.library import AbstractProvider, ProviderV2, ProviderFlags as Pf, UserModel, VideoModel, \
     BriefPlaylistModel, BriefSongModel, LyricModel, SupportsSongSimilar, BriefSongProtocol, SupportsSongHotComments, \
-    SupportsAlbumGet, BriefAlbumModel, SupportsPlaylistAddSong, SupportsPlaylistRemoveSong
+    SupportsAlbumGet, BriefAlbumModel, SupportsPlaylistAddSong, SupportsPlaylistRemoveSong, BriefUserModel, \
+    BriefArtistModel
 from feeluown.media import Quality, Media, MediaType, VideoAudioManifest
 from feeluown.models import SearchType as FuoSearchType, ModelType
 from feeluown.utils.reader import SequentialReader
@@ -21,7 +22,8 @@ from fuo_bilibili.api.schema.requests import PasswordLoginRequest, SendSmsCodeRe
     FavoriteSeasonResourceRequest, PaginatedRequest, HomeRecommendVideosRequest, HomeDynamicVideoRequest, \
     UserInfoRequest, UserBestVideoRequest, UserVideoRequest, AudioFavoriteSongsRequest, AudioGetUrlRequest, \
     VideoHotCommentsRequest, AnotherPaginatedRequest, LivePlayUrlRequest, MediaGetListRequest, MediaFavlistRequest, \
-    HistoryAddLaterVideosRequest, HistoryDelLaterVideosRequest, FavoriteResourceOperateRequest, FavoriteNewRequest
+    HistoryAddLaterVideosRequest, HistoryDelLaterVideosRequest, FavoriteResourceOperateRequest, FavoriteNewRequest, \
+    UserFollowingRequest
 from fuo_bilibili.api.schema.responses import RequestCaptchaResponse, RequestLoginKeyResponse, PasswordLoginResponse, \
     SendSmsCodeResponse, SmsCodeLoginResponse, NavInfoResponse, PlayUrlResponse
 from fuo_bilibili.const import DANMAKU_DIRECTORY
@@ -358,6 +360,14 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
     def fav_playlists(self, identifier) -> List[BriefPlaylistModel]:
         resp = self._api.collected_favorite_list(CollectedFavoriteListRequest(up_mid=int(identifier), ps=40))
         return BPlaylistModel.create_model_list(resp)
+
+    def user_following(self) -> List[BriefArtistModel]:
+        resp = self._api.user_following(UserFollowingRequest(vmid=int(self._user.identifier), ps=100))
+        return [BriefArtistModel(
+            source=__identifier__,
+            identifier=user.mid,
+            name=user.uname,
+        ) for user in resp.data.list]
 
     def audio_favorite_playlists(self) -> List[BriefPlaylistModel]:
         resp = self._api.audio_favorite_list(PaginatedRequest(ps=100, pn=1))

@@ -197,3 +197,8 @@ class FavoriteNewRequest(BaseCsrfRequest):
     intro: str
     privacy: int
     cover: str = ''
+
+
+class UserFollowingRequest(PaginatedRequest):
+    vmid: int
+    order: str = 'desc'

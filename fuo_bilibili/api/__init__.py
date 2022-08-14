@@ -17,7 +17,8 @@ from fuo_bilibili.api.playlist import PlaylistMixin
 from fuo_bilibili.api.schema.enums import VideoQualityNum, SearchType
 from fuo_bilibili.api.schema.requests import BaseRequest, VideoInfoRequest, PlayUrlRequest, SearchRequest, \
     FavoriteListRequest, PaginatedRequest, AudioFavoriteSongsRequest, AnotherPaginatedRequest, LivePlayUrlRequest, \
-    MediaFavlistRequest, HistoryAddLaterVideosRequest, BaseCsrfRequest, HistoryDelLaterVideosRequest
+    MediaFavlistRequest, HistoryAddLaterVideosRequest, BaseCsrfRequest, HistoryDelLaterVideosRequest, \
+    UserFollowingRequest
 from fuo_bilibili.api.schema.responses import BaseResponse
 from fuo_bilibili.api.user import UserMixin
 from fuo_bilibili.api.video import VideoMixin
@@ -126,13 +127,8 @@ def main():
     api.load_cookies()
     # info = api.history_later_videos()
     # info = api.history_add_later_videos(HistoryAddLaterVideosRequest(bvid='BV1RN4y1j7k6'))
-    data = api.get_content_raw('https://comment.bilibili.com/781870756.xml')
-    with (DANMAKU_DIRECTORY / '781870756.xml').open('wb') as f:
-        f.write(data)
-        f.flush()
-    from fuo_bilibili.danmaku2ass import Danmaku2ASS
-    Danmaku2ASS((DANMAKU_DIRECTORY / '781870756.xml').as_posix(), 'autodetect',
-                (DANMAKU_DIRECTORY / '781870756.ass').as_posix(), 1920, 1080)
+    info = api.user_following(UserFollowingRequest(vmid=7844164, ps=80))
+    print(info)
     api.close()
 
 

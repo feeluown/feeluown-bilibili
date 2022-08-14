@@ -919,3 +919,17 @@ class MediaFavlistResponse(BaseResponse):
         list: List[MediaInfo]
 
     data: MediaFavlistResponseData = None
+
+
+class UserFollowingResponse(BaseResponse):
+    class UserFollowingResponseData(BaseModel):
+        class UserFollowing(BaseModel):
+            mid: int
+            uname: str
+            face: str
+            sign: str
+
+        total: int
+        list: List[UserFollowing]
+
+    data: UserFollowingResponseData = None

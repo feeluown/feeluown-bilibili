@@ -41,6 +41,11 @@ class HomeRenderer(Renderer, LibraryTabRendererMixin):
             self._load_live_streams()
         elif self.tab_id == Tab.albums:
             self._load_bangumis()
+        elif self.tab_id == Tab.artists:
+            self._load_recent_following()
+
+    def _load_recent_following(self):
+        self.show_artists(self._provider.user_following())
 
     def _load_bangumis(self):
         self.show_albums(self._provider.media_user_collect())
@@ -61,7 +66,7 @@ class HomeRenderer(Renderer, LibraryTabRendererMixin):
         try:
             self.tabbar.songs_btn.setText('首页推荐')
             self.tabbar.albums_btn.setText('我的番剧/电影')
-            self.tabbar.artists_btn.hide()
+            self.tabbar.artists_btn.setText('最近关注')
             self.tabbar.videos_btn.setText('订阅直播')
             self.tabbar.playlists_btn.hide()
         except Exception as e:
