@@ -293,10 +293,10 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
         videos = sorted(filter(lambda a: a.id <= select_quality.value, response.data.dash.video), key=lambda a: a.id, reverse=True)
         if videos is None or len(videos) == 0:
             return None
-        danmaku_path = self._get_video_danmaku(video_cid, video.identifier)
-        if not danmaku_path.exists():
-            danmaku_path = None
         if len(signature(VideoAudioManifest).parameters) == 3:
+            danmaku_path = self._get_video_danmaku(video_cid, video.identifier)
+            if not danmaku_path.exists():
+                danmaku_path = None
             manifest = VideoAudioManifest(videos[0].base_url, audios[0].base_url, danmaku_path.as_posix() if danmaku_path is not None else None)
         else:
             manifest = VideoAudioManifest(videos[0].base_url, audios[0].base_url)
