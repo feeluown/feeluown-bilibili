@@ -42,6 +42,10 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
             return False
         return True
 
+    @staticmethod
+    def remove_cookie():
+        PLUGIN_API_COOKIEJAR_FILE.unlink(missing_ok=True)
+
     def load_cookies(self):
         self._cookie.load()
 

@@ -114,7 +114,11 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
 
     def auth(self, _):
         self._api.load_cookies()
-        self._user = self.user_info()
+        try:
+            self._user = self.user_info()
+        except RuntimeError as re:
+            self._api.remove_cookie()
+            print(str(re) + ' 请重新登录')
         return self._user
 
     def has_current_user(self) -> bool:

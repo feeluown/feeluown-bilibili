@@ -217,20 +217,20 @@ class NavInfoResponse(BaseResponse):
             coupon_balance: int  # 赠送B币数
 
         isLogin: bool
-        email_verified: bool
-        face: str
-        mid: int  # UID
-        mobile_verified: bool
-        money: int  # 硬币数
-        moral: int  # 节操值
-        uname: str
-        vipDueDate: datetime
-        vipStatus: bool
-        vipType: VipType
-        vip_pay_type: bool
-        wallet: Wallet
-        level_info: LevelInfo
-        vip_label: VipLabel
+        email_verified: bool = None
+        face: str = None
+        mid: int = None  # UID
+        mobile_verified: bool = None
+        money: int = None  # 硬币数
+        moral: int = None  # 节操值
+        uname: str = None
+        vipDueDate: datetime = None
+        vipStatus: bool = None
+        vipType: VipType = None
+        vip_pay_type: bool = None
+        wallet: Wallet = None
+        level_info: LevelInfo = None
+        vip_label: VipLabel = None
 
         @classmethod
         @validator('vipDueDate')
