@@ -381,6 +381,10 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
         resp = self._api.home_recommend_videos(HomeRecommendVideosRequest(ps=10, fresh_idx=idx, fresh_idx_1h=idx))
         return [BSongModel.create_history_brief_model(v) for v in resp.data.item]
 
+    def most_popular_videos(self) -> List[BriefSongModel]:
+        resp = self._api.video_most_popular()
+        return [BSongModel.create_history_brief_model(v) for v in resp.data.list]
+
     def video_live_feeds(self) -> List[BVideoModel]:
         resp = self._api.live_feed_list(AnotherPaginatedRequest(pagesize=30))
         return [BVideoModel.create_live_model(live) for live in resp.data.list]

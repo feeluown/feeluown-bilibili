@@ -127,7 +127,7 @@ def main():
     api.load_cookies()
     # info = api.history_later_videos()
     # info = api.history_add_later_videos(HistoryAddLaterVideosRequest(bvid='BV1RN4y1j7k6'))
-    info = api.user_following(UserFollowingRequest(vmid=7844164, ps=80))
+    info = api.video_most_popular()
     print(info)
     api.close()
 

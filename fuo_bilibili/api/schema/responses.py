@@ -933,3 +933,27 @@ class UserFollowingResponse(BaseResponse):
         list: List[UserFollowing]
 
     data: UserFollowingResponseData = None
+
+
+class VideoMostPopularResponse(BaseResponse):
+    class VideoMostPopularResponseData(BaseModel):
+        class PopularVideo(BaseModel):
+            aid: int
+            bvid: str
+            videos: int
+            tid: int
+            tname: str
+            copyright: VideoCopyright
+            pic: str
+            title: str
+            pubdate: datetime
+            ctime: datetime
+            desc: str
+            duration: timedelta
+            owner: Owner
+            stat: Stat
+            rcmd_reason: dict
+
+        list: List[PopularVideo]
+
+    data: VideoMostPopularResponseData = None

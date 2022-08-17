@@ -275,7 +275,9 @@ class BUiManager:
 
     def _initial_pages(self):
         from fuo_bilibili.page_home import render as home_render
+        from fuo_bilibili.page_ranking import render as ranking_render
         self._app.browser.route('/providers/bilibili/home')(home_render)
+        self._app.browser.route('/providers/bilibili/ranking')(ranking_render)
 
     async def load_user_content(self):
         left = self._app.ui.left_panel
@@ -286,8 +288,14 @@ class BUiManager:
         mymusic_home_item.clicked.connect(
             lambda: self._app.browser.goto(page='/providers/bilibili/home'),
             weak=False)
+        mymusic_ranking_item = self._app.mymusic_uimgr.create_item('🔥 全站热门')
+        mymusic_ranking_item.clicked.connect(
+            lambda: self._app.browser.goto(page='/providers/bilibili/ranking'),
+            weak=False
+        )
         self._app.mymusic_uimgr.clear()
         self._app.mymusic_uimgr.add_item(mymusic_home_item)
+        self._app.mymusic_uimgr.add_item(mymusic_ranking_item)
         # 歌单列表
         self._app.pl_uimgr.clear()
         # 视频区

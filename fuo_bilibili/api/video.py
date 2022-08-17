@@ -1,8 +1,8 @@
-from typing import Type, Any
+from typing import Type, Any, Optional
 
 from fuo_bilibili.api.schema.requests import VideoInfoRequest, PlayUrlRequest, BaseRequest, VideoHotCommentsRequest
 from fuo_bilibili.api.schema.responses import VideoInfoResponse, PlayUrlResponse, BaseResponse, VideoGetRelatedResponse, \
-    VideoHotCommentsResponse
+    VideoHotCommentsResponse, VideoMostPopularResponse
 
 
 class VideoMixin:
@@ -10,7 +10,7 @@ class VideoMixin:
     PLAYER_API_BASE = 'https://api.bilibili.com/x/player'
     APIX_BASE = 'https://api.bilibili.com/x'
 
-    def get(self, url: str, param: BaseRequest, clazz: Type[BaseResponse]) -> Any:
+    def get(self, url: str, param: Optional[BaseRequest], clazz: Type[BaseResponse]) -> Any:
         pass
 
     def video_get_info(self, request: VideoInfoRequest) -> VideoInfoResponse:
@@ -28,3 +28,7 @@ class VideoMixin:
     def video_get_hot_comments(self, request: VideoHotCommentsRequest) -> VideoHotCommentsResponse:
         url = f'{self.APIX_BASE}/v2/reply'
         return self.get(url, request, VideoHotCommentsResponse)
+
+    def video_most_popular(self) -> VideoMostPopularResponse:
+        url = f'{self.APIX_BASE}/web-interface/popular'
+        return self.get(url, None, VideoMostPopularResponse)
