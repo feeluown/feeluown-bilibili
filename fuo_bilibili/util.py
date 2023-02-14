@@ -48,5 +48,13 @@ def json_to_lrc_text(jsons: str) -> Optional[str]:
     return '\n'.join(lrc_lines)
 
 
+def get_random_available_port() -> int:
+    from socket import socket
+
+    with socket() as s:
+        s.bind(('', 0))
+        return s.getsockname()[1]
+
+
 if __name__ == '__main__':
-    print(format_timedelta_to_hms(timedelta(seconds=127)))
+    print(get_random_available_port())

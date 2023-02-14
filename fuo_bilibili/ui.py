@@ -13,7 +13,8 @@ from feeluown.library import UserModel
 from fuo_bilibili import __identifier__, __alias__, BilibiliProvider
 from fuo_bilibili.api.schema.requests import PasswordLoginRequest, SendSmsCodeRequest, SmsCodeLoginRequest
 from fuo_bilibili.api.schema.responses import RequestLoginKeyResponse
-from fuo_bilibili.util import rsa_encrypt
+from fuo_bilibili.geetest.server import GeetestAuthServer
+from fuo_bilibili.util import rsa_encrypt, get_random_available_port
 
 logger = logging.getLogger(__name__)
 
@@ -100,9 +101,12 @@ class BAuthDialog(QDialog):
         self.gt_input.setText(geetest.gt)
         self.challenge_input.setText(geetest.challenge)
         self._token = data.token
+        port = get_random_available_port()
+        self._server = GeetestAuthServer(port, self)
+        self._server.start()
         self.auth_link.setText(
-            f'<a href="https://brucezhang1993.github.io/fuo-geetest-validator/?gt={geetest.gt}'
-            f'&challenge={geetest.challenge}">点击链接完成验证</a>')
+            f'<a href="http://127.0.0.1:{port}/challenge?gt={geetest.gt}'
+            f'&challenge={geetest.challenge}&token={self._token}&type={self.type}">点击链接完成验证</a>')
 
 
 class BLoginDialog(QDialog):
@@ -222,6 +226,8 @@ class BLoginDialog(QDialog):
         self._captcha_id = resp.data.captcha_key
 
     def _auth_back(self, validate: str, seccode: str, challenge: str, token: str, type_: str):
+        self._auth_dialog._server.stop()
+        self._auth_dialog.close()
         match type_:
             case 'login':
                 self._continue_password_login(validate, seccode, challenge, token)

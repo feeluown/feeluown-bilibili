@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FeelUOwn</title>
+    <style>
+        body {
+            margin: 50px 0;
+            text-align: center;
+            font-family: "PingFangSC-Regular", "Open Sans", Arial, "Hiragino Sans GB", "Microsoft YaHei", "STHeiti", "WenQuanYi Micro Hei", SimSun, sans-serif;
+        }
+
+        .inp {
+            border: 1px solid #cccccc;
+            border-radius: 2px;
+            padding: 0 10px;
+            width: 320px;
+            height: 40px;
+            font-size: 18px;
+        }
+
+        .btn {
+            display: inline-block;
+            box-sizing: border-box;
+            border: 1px solid #cccccc;
+            border-radius: 2px;
+            width: 100px;
+            height: 40px;
+            line-height: 40px;
+            font-size: 16px;
+            color: #666;
+            cursor: pointer;
+            background: white linear-gradient(180deg, #ffffff 0%, #f3f3f3 100%);
+        }
+
+        .btn:hover {
+            background: white linear-gradient(0deg, #ffffff 0%, #f3f3f3 100%)
+        }
+
+        #captcha {
+            width: 300px;
+            display: inline-block;
+        }
+
+        label {
+            vertical-align: top;
+            display: inline-block;
+            width: 120px;
+            text-align: right;
+        }
+
+        #text {
+            height: 42px;
+            width: 298px;
+            text-align: center;
+            border-radius: 2px;
+            background-color: #F3F3F3;
+            color: #BBBBBB;
+            font-size: 14px;
+            letter-spacing: 0.1px;
+            line-height: 42px;
+        }
+
+        #wait {
+            display: none;
+            height: 42px;
+            width: 298px;
+            text-align: center;
+            border-radius: 2px;
+            background-color: #F3F3F3;
+        }
+
+        .loading {
+            margin: auto;
+            width: 70px;
+            height: 20px;
+        }
+
+        .loading-dot {
+            float: left;
+            width: 8px;
+            height: 8px;
+            margin: 18px 4px;
+            background: #ccc;
+
+            -webkit-border-radius: 50%;
+            -moz-border-radius: 50%;
+            border-radius: 50%;
+
+            opacity: 0;
+
+            -webkit-box-shadow: 0 0 2px black;
+            -moz-box-shadow: 0 0 2px black;
+            -ms-box-shadow: 0 0 2px black;
+            -o-box-shadow: 0 0 2px black;
+            box-shadow: 0 0 2px black;
+
+            -webkit-animation: loadingFade 1s infinite;
+            -moz-animation: loadingFade 1s infinite;
+            animation: loadingFade 1s infinite;
+        }
+
+        .loading-dot:nth-child(1) {
+            -webkit-animation-delay: 0s;
+            -moz-animation-delay: 0s;
+            animation-delay: 0s;
+        }
+
+        .loading-dot:nth-child(2) {
+            -webkit-animation-delay: 0.1s;
+            -moz-animation-delay: 0.1s;
+            animation-delay: 0.1s;
+        }
+
+        .loading-dot:nth-child(3) {
+            -webkit-animation-delay: 0.2s;
+            -moz-animation-delay: 0.2s;
+            animation-delay: 0.2s;
+        }
+
+        .loading-dot:nth-child(4) {
+            -webkit-animation-delay: 0.3s;
+            -moz-animation-delay: 0.3s;
+            animation-delay: 0.3s;
+        }
+
+        @-webkit-keyframes loadingFade {
+            0% {
+                opacity: 0;
+            }
+            50% {
+                opacity: 0.8;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+
+        @-moz-keyframes loadingFade {
+            0% {
+                opacity: 0;
+            }
+            50% {
+                opacity: 0.8;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+
+        @keyframes loadingFade {
+            0% {
+                opacity: 0;
+            }
+            50% {
+                opacity: 0.8;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<form method="get" action="/back" id="form1">
+<input class="inp" id="gt" name="gt" type="hidden">
+<input class="inp" id="challenge" name="challenge" type="hidden">
+<input class="inp" id="token" name="token" type="hidden">
+<input class="inp" id="type" name="type" type="hidden">
+
+<br><br>
+
+<div>
+    <label>验证</label>
+    <div id="captcha">
+        <div id="text">
+            Placeholder
+        </div>
+        <div id="wait" class="show">
+            <div class="loading">
+                <div class="loading-dot"></div>
+                <div class="loading-dot"></div>
+                <div class="loading-dot"></div>
+                <div class="loading-dot"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<br>
+
+<div id="btn-result" class="btn">完成</div>
+<br><br>
+
+<div>
+    <input class="inp" id="validate" name="validate" type="hidden" readonly="readonly">
+</div>
+<br>
+
+<div>
+    <input class="inp" id="seccode" name="seccode" type="hidden" readonly="readonly">
+</div>
+<br>
+</form>
+
+<script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+<script src="https://static.geetest.com/static/js/gt.0.4.9.js"></script>
+
+<script>
+    function getQueryVariable(variable) {
+        let query = window.location.search.substring(1);
+        let vars = query.split("&");
+        for (let i = 0; i < vars.length; i++) {
+            let pair = vars[i].split("=");
+            if (pair[0] == variable) {
+                return pair[1];
+            }
+        }
+        return null;
+    }
+
+    let handler = function (captchaObj) {
+        captchaObj.appendTo('#captcha');
+        captchaObj.onReady(function () {
+            $("#wait").hide();
+        });
+        $('#btn-result').click(function () {
+            let result = captchaObj.getValidate();
+            if (!result) {
+                return alert('请完成验证');
+            }
+            let validate = $('#validate')[0];
+            let seccode = $('#seccode')[0];
+            validate.value = result.geetest_validate;
+            seccode.value = result.geetest_seccode;
+            $('#form1').submit();
+        });
+        // 更多前端接口说明请参见：http://docs.geetest.com/install/client/web-front/
+    };
+
+    function generate() {
+        $('#text').hide();
+        $('#wait').show();
+        let gt = $('#gt')[0].value;
+        let challenge = $('#challenge')[0].value;
+        // 调用 initGeetest 进行初始化
+        // 参数1：配置参数
+        // 参数2：回调，回调的第一个参数验证码对象，之后可以使用它调用相应的接口
+        initGeetest({
+            // 以下 4 个配置参数为必须，不能缺少
+            gt: gt,
+            challenge: challenge,
+            offline: false, // 表示用户后台检测极验服务器是否宕机
+            new_captcha: true, // 用于宕机时表示是新验证码的宕机
+
+            product: "popup", // 产品形式，包括：float，popup
+            width: "300px",
+            https: true
+
+            // 更多前端配置参数说明请参见：http://docs.geetest.com/install/client/web-front/
+        }, handler);
+    }
+
+    $(function () {
+        let gt = $('#gt');
+        let challenge = $('#challenge');
+        let token = $('#token');
+        let type = $('#type');
+        gt.val(getQueryVariable('gt'));
+        challenge.val(getQueryVariable('challenge'));
+        token.val(getQueryVariable('token'))
+        type.val(getQueryVariable('type'))
+        if (gt.val() == null || gt.val() === '' || challenge.val() == null || challenge.val() === '') {
+            return;
+        }
+        generate();
+    });
+</script>
+</body>
+
+</html>
