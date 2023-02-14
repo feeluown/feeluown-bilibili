@@ -13,7 +13,7 @@ from fuo_bilibili.api.schema.responses import SearchResponse, SearchResultVideo,
     FavoriteSeasonResourceResponse, HistoryLaterVideoResponse, HomeDynamicVideoResponse, UserInfoResponse, \
     UserBestVideoResponse, UserVideoResponse, AudioFavoriteSongsResponse, AudioFavoriteListResponse, AudioPlaylist, \
     AudioPlaylistSong, VideoHotCommentsResponse, SearchResultUser, LiveFeedListResponse, SearchResultLiveRoom, \
-    SearchResultMedia, MediaGetListResponse
+    SearchResultMedia, MediaGetListResponse, VideoWeeklyListResponse
 from fuo_bilibili.util import format_timedelta_to_hms
 
 PROVIDER_ID = __identifier__
@@ -326,6 +326,15 @@ class BPlaylistModel(PlaylistModel):
             identifier=identifier,
             creator_name=p.uname,
             name=f'{p.title} (音频)',
+        )
+
+    @classmethod
+    def weekly_brief_model(cls, item: VideoWeeklyListResponse.VideoWeeklyListResponseData.VideoWeeklyItem):
+        return BriefPlaylistModel(
+            source=PROVIDER_ID,
+            identifier=f'weekly_{item.number}',
+            creator_name='',
+            name=f'{item.subject} ({item.name})',
         )
 
     @classmethod

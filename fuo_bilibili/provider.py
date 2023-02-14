@@ -389,6 +389,10 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
         resp = self._api.video_most_popular()
         return [BSongModel.create_history_brief_model(v) for v in resp.data.list]
 
+    def weekly_video_playlists(self) -> List[BriefPlaylistModel]:
+        resp = self._api.video_weekly_list()
+        return [BPlaylistModel.weekly_brief_model(v) for v in resp.data.list]
+
     def video_live_feeds(self) -> List[BVideoModel]:
         resp = self._api.live_feed_list(AnotherPaginatedRequest(pagesize=30))
         return [BVideoModel.create_live_model(live) for live in resp.data.list]
@@ -419,6 +423,16 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
 
     def playlist_get(self, identifier: str) -> Optional[BPlaylistModel]:
         # fixme: fuo should support playlist_get v2 first
+        if identifier.startswith('weekly_'):
+            return BPlaylistModel(
+                source=__identifier__,
+                identifier=identifier,
+                creator=None,
+                name='',
+                cover='',
+                description='',
+                count=0,
+            )
         if identifier.startswith('audio_'):
             return self.audio_playlist_get(identifier)
         if identifier == 'LATER':

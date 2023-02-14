@@ -131,8 +131,8 @@ def main():
     api.load_cookies()
     # info = api.history_later_videos()
     # info = api.history_add_later_videos(HistoryAddLaterVideosRequest(bvid='BV1RN4y1j7k6'))
-    info = api.video_most_popular()
-    print(info)
+    info = api.video_weekly_list()
+    print(info.json())
     api.close()
 
 

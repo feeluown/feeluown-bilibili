@@ -957,3 +957,16 @@ class VideoMostPopularResponse(BaseResponse):
         list: List[PopularVideo]
 
     data: VideoMostPopularResponseData = None
+
+
+class VideoWeeklyListResponse(BaseResponse):
+    class VideoWeeklyListResponseData(BaseModel):
+        class VideoWeeklyItem(BaseModel):
+            number: int
+            subject: str
+            status: int
+            name: str
+
+        list: List[VideoWeeklyItem]
+
+    data: VideoWeeklyListResponseData = None
