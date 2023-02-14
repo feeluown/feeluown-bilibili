@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Optional
 
 from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtGui import QCloseEvent
 from PyQt5.QtWidgets import QDialog, QLineEdit, QVBoxLayout, QPushButton, QLabel, QFrame, QTabWidget, QMessageBox, \
     QAction, QInputDialog
 from feeluown.app.gui_app import GuiApp
@@ -38,13 +39,13 @@ class BAuthDialog(QDialog):
         self.challenge_input.setReadOnly(True)
         self.challenge_input.setVisible(False)
         self.auth_link = self._create_link_label('#', '正在获取验证链接...')
-        self.validate_input = QLineEdit(self)
+        self.validate_input = QLineEdit()
         self.validate_input.setPlaceholderText('validate')
-        self.seccode_input = QLineEdit(self)
+        self.seccode_input = QLineEdit()
         self.seccode_input.setPlaceholderText('seccode')
         self.hint_label = QLabel(self)
         self.hint_label.setStyleSheet('QLabel {color:orange}')
-        self.authed_btn = QPushButton('完成', self)
+        self.authed_btn = QPushButton('完成')
         # noinspection PyUnresolvedReferences
         self.authed_btn.clicked.connect(self._check_auth_and_back)
         self._layout = QVBoxLayout(self)
@@ -55,10 +56,14 @@ class BAuthDialog(QDialog):
         self._layout.addWidget(self.gt_input)
         self._layout.addWidget(self.challenge_input)
         self._layout.addWidget(self.auth_link)
-        self._layout.addWidget(self.validate_input)
-        self._layout.addWidget(self.seccode_input)
+        # self._layout.addWidget(self.validate_input)
+        # self._layout.addWidget(self.seccode_input)
         self._layout.addWidget(self.hint_label)
-        self._layout.addWidget(self.authed_btn)
+        # self._layout.addWidget(self.authed_btn)
+
+    def closeEvent(self, e: QCloseEvent) -> None:
+        self._server.stop()
+        e.accept()
 
     def _check_auth_and_back(self):
         # todo: use qvalidator
