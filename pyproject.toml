@@ -5,7 +5,7 @@ description = "Bilibili provider for FeelUOwn player."
 homepage = "https://github.com/BruceZhang1993/feeluown-bilibili"
 authors = ["Bruce Zhang <zttt183525594@gmail.com>"]
 packages = [{ include = "fuo_bilibili" }]
-include = ["fuo_bilibili/assets/icon.svg"]
+include = ["fuo_bilibili/assets/icon.svg", "fuo_bilibili/geetest/index.html"]
 license = "GPL-3.0"
 readme = "README.md"
 
