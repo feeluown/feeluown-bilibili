@@ -23,7 +23,7 @@ from fuo_bilibili.api.schema.requests import PasswordLoginRequest, SendSmsCodeRe
     UserInfoRequest, UserBestVideoRequest, UserVideoRequest, AudioFavoriteSongsRequest, AudioGetUrlRequest, \
     VideoHotCommentsRequest, AnotherPaginatedRequest, LivePlayUrlRequest, MediaGetListRequest, MediaFavlistRequest, \
     HistoryAddLaterVideosRequest, HistoryDelLaterVideosRequest, FavoriteResourceOperateRequest, FavoriteNewRequest, \
-    UserFollowingRequest
+    UserFollowingRequest, WeeklyDetailRequest
 from fuo_bilibili.api.schema.responses import RequestCaptchaResponse, RequestLoginKeyResponse, PasswordLoginResponse, \
     SendSmsCodeResponse, SmsCodeLoginResponse, NavInfoResponse, PlayUrlResponse
 from fuo_bilibili.const import DANMAKU_DIRECTORY
@@ -61,7 +61,8 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
     def playlist_remove_song(self, playlist, song) -> bool:
         match playlist.identifier:
             case 'LATER':
-                self._api.history_del_later_videos(HistoryDelLaterVideosRequest(aid=self._get_video_avid(song.identifier)))
+                self._api.history_del_later_videos(
+                    HistoryDelLaterVideosRequest(aid=self._get_video_avid(song.identifier)))
                 return True
             case 'HISTORY':
                 return False
@@ -294,14 +295,16 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
         max_quality_code = VideoQualityNum.get_max_from_quality(quality)
         select_quality = max(filter(lambda c: c.value <= max_quality_code, self._video_quality_codes[video.identifier]),
                              key=lambda c: c.value)
-        videos = sorted(filter(lambda a: a.id <= select_quality.value, response.data.dash.video), key=lambda a: a.id, reverse=True)
+        videos = sorted(filter(lambda a: a.id <= select_quality.value, response.data.dash.video), key=lambda a: a.id,
+                        reverse=True)
         if videos is None or len(videos) == 0:
             return None
         if len(signature(VideoAudioManifest).parameters) == 3:
             danmaku_path = self._get_video_danmaku(video_cid, video.identifier)
             if not danmaku_path.exists():
                 danmaku_path = None
-            manifest = VideoAudioManifest(videos[0].base_url, audios[0].base_url, danmaku_path.as_posix() if danmaku_path is not None else None)
+            manifest = VideoAudioManifest(videos[0].base_url, audios[0].base_url,
+                                          danmaku_path.as_posix() if danmaku_path is not None else None)
         else:
             manifest = VideoAudioManifest(videos[0].base_url, audios[0].base_url)
         return Media(manifest, format='flv', http_headers={'Referer': 'https://www.bilibili.com/'})
@@ -400,8 +403,8 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
     def media_user_collect(self) -> List[BriefAlbumModel]:
         resp1 = self._api.media_bangumi_favlist(MediaFavlistRequest(vmid=int(self._user.identifier), ps=30))
         resp2 = self._api.media_bangumi_favlist(MediaFavlistRequest(vmid=int(self._user.identifier), ps=30, type=2))
-        return [BSearchModel.search_media_model(m) for m in resp1.data.list] +\
-               [BSearchModel.search_media_model(m) for m in resp2.data.list]
+        return [BSearchModel.search_media_model(m) for m in resp1.data.list] + \
+            [BSearchModel.search_media_model(m) for m in resp2.data.list]
 
     def audio_playlist_get(self, identifier: str) -> Optional[BPlaylistModel]:
         _, type_, id_ = identifier.split('_')
@@ -477,9 +480,26 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
 
         return SequentialReader(g(), playlist.count)
 
+    def weekly_playlist_create_songs_rd(self, playlist):
+        _, id_ = playlist.identifier.split('_')
+
+        response = self._api.video_weekly_detail(WeeklyDetailRequest(number=id_))
+
+        def g():
+            page = 1
+            if page == 1:
+                for i in response.data.list:
+                    yield BSongModel.create_history_brief_model(i)
+            page += 1
+
+        return SequentialReader(g(), len(response.data.list))
+
     def playlist_create_songs_rd(self, playlist):
         if playlist.identifier.startswith('audio_'):
             return self.audio_playlist_create_songs_rd(playlist)
+
+        if playlist.identifier.startswith('weekly_'):
+            return self.weekly_playlist_create_songs_rd(playlist)
 
         def g():
             _dynamic_offset = None
@@ -565,4 +585,5 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
 
 if __name__ == '__main__':
     from inspect import signature
+
     print(len(signature(VideoAudioManifest).parameters))

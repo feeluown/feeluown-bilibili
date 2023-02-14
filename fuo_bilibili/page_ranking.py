@@ -33,9 +33,14 @@ class RankingRenderer(Renderer, LibraryTabRendererMixin):
 
         if self.tab_id == Tab.songs:
             self._refresh_hot_videos()
+        if self.tab_id == Tab.playlists:
+            self._refresh_weekly_playlists()
 
     def _refresh_hot_videos(self):
         self.show_songs(self._provider.most_popular_videos())
+
+    def _refresh_weekly_playlists(self):
+        self.show_playlists(self._provider.weekly_video_playlists())
 
     def show_by_tab_id(self, tab_id):
         query = {'tab_id': tab_id.value}
@@ -48,6 +53,6 @@ class RankingRenderer(Renderer, LibraryTabRendererMixin):
             self.tabbar.albums_btn.hide()
             self.tabbar.artists_btn.hide()
             self.tabbar.videos_btn.hide()
-            self.tabbar.playlists_btn.hide()
+            self.tabbar.playlists_btn.setText('每周必看')
         except Exception as e:
             logger.warning(str(e))

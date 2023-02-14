@@ -18,7 +18,7 @@ from fuo_bilibili.api.schema.enums import VideoQualityNum, SearchType
 from fuo_bilibili.api.schema.requests import BaseRequest, VideoInfoRequest, PlayUrlRequest, SearchRequest, \
     FavoriteListRequest, PaginatedRequest, AudioFavoriteSongsRequest, AnotherPaginatedRequest, LivePlayUrlRequest, \
     MediaFavlistRequest, HistoryAddLaterVideosRequest, BaseCsrfRequest, HistoryDelLaterVideosRequest, \
-    UserFollowingRequest
+    UserFollowingRequest, WeeklyDetailRequest
 from fuo_bilibili.api.schema.responses import BaseResponse
 from fuo_bilibili.api.user import UserMixin
 from fuo_bilibili.api.video import VideoMixin
@@ -131,7 +131,7 @@ def main():
     api.load_cookies()
     # info = api.history_later_videos()
     # info = api.history_add_later_videos(HistoryAddLaterVideosRequest(bvid='BV1RN4y1j7k6'))
-    info = api.video_weekly_list()
+    info = api.video_weekly_detail(WeeklyDetailRequest(number=203))
     print(info.json())
     api.close()
 

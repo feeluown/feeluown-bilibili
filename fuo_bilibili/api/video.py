@@ -1,8 +1,9 @@
 from typing import Type, Any, Optional
 
-from fuo_bilibili.api.schema.requests import VideoInfoRequest, PlayUrlRequest, BaseRequest, VideoHotCommentsRequest
+from fuo_bilibili.api.schema.requests import VideoInfoRequest, PlayUrlRequest, BaseRequest, VideoHotCommentsRequest, \
+    WeeklyDetailRequest
 from fuo_bilibili.api.schema.responses import VideoInfoResponse, PlayUrlResponse, BaseResponse, VideoGetRelatedResponse, \
-    VideoHotCommentsResponse, VideoMostPopularResponse, VideoWeeklyListResponse
+    VideoHotCommentsResponse, VideoMostPopularResponse, VideoWeeklyListResponse, WeeklyDetailResponse
 
 
 class VideoMixin:
@@ -36,3 +37,7 @@ class VideoMixin:
     def video_weekly_list(self) -> VideoWeeklyListResponse:
         url = f'{self.APIX_BASE}/web-interface/popular/series/list'
         return self.get(url, None, VideoWeeklyListResponse)
+
+    def video_weekly_detail(self, request: WeeklyDetailRequest) -> WeeklyDetailResponse:
+        url = f'{self.APIX_BASE}/web-interface/popular/series/one'
+        return self.get(url, request, WeeklyDetailResponse)

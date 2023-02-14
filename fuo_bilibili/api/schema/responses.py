@@ -970,3 +970,32 @@ class VideoWeeklyListResponse(BaseResponse):
         list: List[VideoWeeklyItem]
 
     data: VideoWeeklyListResponseData = None
+
+
+class WeeklyDetailResponse(BaseResponse):
+    class WeeklyDetailResponseData(BaseModel):
+        class WeeklyDetail(BaseModel):
+            aid: int
+            videos: int
+            tid: int
+            tname: str
+            copyright: VideoCopyright
+            pic: str
+            title: str
+            duration: timedelta
+            rights: Rights
+            owner: Owner
+            stat: Stat
+            dynamic: str
+            cid: int
+            dimension: Dimension
+            short_link: str
+            short_link_v2: str
+            first_frame: str
+            pub_location: str
+            bvid: str
+            rcmd_reason: str
+
+        list: List[WeeklyDetail]
+
+    data: WeeklyDetailResponseData = None

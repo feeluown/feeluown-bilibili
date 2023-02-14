@@ -202,3 +202,7 @@ class FavoriteNewRequest(BaseCsrfRequest):
 class UserFollowingRequest(PaginatedRequest):
     vmid: int
     order: str = 'desc'
+
+
+class WeeklyDetailRequest(BaseRequest):
+    number: int
