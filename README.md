@@ -4,7 +4,7 @@
 ![AUR version](https://img.shields.io/aur/version/feeluown-bilibili?style=for-the-badge)
 ![PyPI](https://img.shields.io/pypi/v/feeluown_bilibili?style=for-the-badge)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/feeluown_bilibili?style=for-the-badge)
-![Libraries.io dependency status for GitHub repo](https://img.shields.io/librariesio/github/brucezhang1993/feeluown-bilibili)
+![Libraries.io dependency status for GitHub repo](https://img.shields.io/librariesio/github/brucezhang1993/feeluown-bilibili?style=for-the-badge)
 
 ## Prerequisite
 
