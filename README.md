@@ -1,5 +1,10 @@
 # Yet another bilibili plugin for FeelUOwn player
 
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/brucezhang1993/feeluown-bilibili/build.yml?style=for-the-badge)
+![AUR version](https://img.shields.io/aur/version/feeluown-bilibili?style=for-the-badge)
+![PyPI](https://img.shields.io/pypi/v/feeluown_bilibili?style=for-the-badge)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/feeluown_bilibili?style=for-the-badge)
+
 ## Prerequisite
 
 You must have [FeelUOwn](https://github.com/feeluown/FeelUOwn) first
