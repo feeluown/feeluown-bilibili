@@ -27,11 +27,11 @@ class LoginMixin:
         pass
 
     def request_captcha(self) -> RequestCaptchaResponse:
-        url = f'{self.PASSPORT_BASE}/x/passport-login/captcha?source=main_web'
+        url = f'{self.PASSPORT_BASE}/x/passport-login/captcha'
         return self.get_uncached(url, None, RequestCaptchaResponse)
 
     def request_login_key(self) -> RequestLoginKeyResponse:
-        url = f'{self.PASSPORT_BASE}/login?act=getkey'
+        url = f'{self.PASSPORT_BASE}/x/passport-login/web/key'
         response: RequestLoginKeyResponse = self.get_uncached(url, None, RequestLoginKeyResponse)
         # 接口没有状态码 pydantic 判断字段存在 根据字段是否空判断
         if response.key == '' or response.hash == '':
