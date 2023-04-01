@@ -48,6 +48,7 @@ class BSongModel(SongModel):
             )],
             duration=au.duration.total_seconds() * 1000,
             lyric=au.lyric,
+            pic_url=au.cover,
         )
 
     @classmethod
@@ -79,6 +80,7 @@ class BSongModel(SongModel):
                 name=item.owner.name,
             )],
             duration=item.duration.total_seconds() * 1000,
+            pic_url=item.pic,
         )
 
     @classmethod
@@ -122,6 +124,7 @@ class BSongModel(SongModel):
                 name=result.author,
             )],
             duration=result.duration.total_seconds() * 1000,
+            pic_url=result.pic,
         )
 
     @classmethod
@@ -148,6 +151,7 @@ class BSongModel(SongModel):
             )],
             duration=result.duration.total_seconds() * 1000,
             lyric=lrc,
+            pic_url=result.pic,
             exists=ModelExistence.yes,
         )
 
