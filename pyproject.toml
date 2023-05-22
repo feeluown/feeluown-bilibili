@@ -21,6 +21,7 @@ pytest = "*"
 PyQt5 = "*"
 fuo-dl = "^0.3"
 pre-commit = "*"
+poetry2setup = "*"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
