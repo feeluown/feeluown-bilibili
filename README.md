@@ -35,6 +35,7 @@ yay -S feeluown-bilibili
 
 ```shell
 poetry install
+poetry run pre-commit install
 ```
 
 ## License
