@@ -262,7 +262,7 @@ class BSearchModel:
         # fixme: implements multiple search types
         match SearchType.BANGUMI if isinstance(request, Tuple) else request.search_type:
             case SearchType.VIDEO:
-                songs = list(map(lambda r_: cls.create_model(r_), results))
+                songs = list(map(lambda r_: BSongModel.create_model(r_), results))
             case SearchType.BILI_USER:
                 artists = list(map(cls.search_user_model, results))
             case SearchType.LIVE_ROOM:
@@ -271,10 +271,10 @@ class BSearchModel:
                 albums = list(map(cls.search_media_model, results))
         return SimpleSearchResult(
             q=request[0].keyword if isinstance(request, Tuple) else request.keyword,
-            songs=songs,
-            artists=artists,
-            videos=videos,
-            albums=albums,
+            songs=songs or [],
+            artists=artists or [],
+            videos=videos or [],
+            albums=albums or [],
         )
 
 
