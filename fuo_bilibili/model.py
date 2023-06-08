@@ -2,8 +2,8 @@ from typing import List, Union, Optional, Tuple
 
 from bs4 import BeautifulSoup
 from feeluown.library import SongModel, BriefArtistModel, PlaylistModel, BriefPlaylistModel, BriefUserModel, \
-    BriefSongModel, ArtistModel, CommentModel, VideoModel, BriefVideoModel, BriefAlbumModel, AlbumModel
-from feeluown.models import SearchModel, ModelExistence
+    BriefSongModel, ArtistModel, CommentModel, VideoModel, BriefVideoModel, BriefAlbumModel, AlbumModel, \
+    SimpleSearchResult
 
 from fuo_bilibili import __identifier__
 from fuo_bilibili.api import SearchType
@@ -152,7 +152,6 @@ class BSongModel(SongModel):
             duration=result.duration.total_seconds() * 1000,
             lyric=lrc,
             pic_url=result.pic,
-            exists=ModelExistence.yes,
         )
 
     @classmethod
@@ -204,7 +203,7 @@ class BAlbumModel(AlbumModel):
         )
 
 
-class BSearchModel(SearchModel):
+class BSearchModel:
     PROVIDER_ID = __identifier__
 
     # ['q', 'songs', 'playlists', 'artists', 'albums', 'videos']
@@ -270,13 +269,12 @@ class BSearchModel(SearchModel):
                 videos = list(map(cls.search_live_model, results))
             case SearchType.BANGUMI:
                 albums = list(map(cls.search_media_model, results))
-        return cls(
-            source=PROVIDER_ID,
+        return SimpleSearchResult(
             q=request[0].keyword if isinstance(request, Tuple) else request.keyword,
-            songs=songs,
-            artists=artists,
-            videos=videos,
-            albums=albums,
+            songs=songs or [],
+            artists=artists or [],
+            videos=videos or [],
+            albums=albums or [],
         )
 
 

@@ -8,9 +8,8 @@ from feeluown.excs import NoUserLoggedIn
 from feeluown.library import AbstractProvider, ProviderV2, ProviderFlags as Pf, UserModel, VideoModel, \
     BriefPlaylistModel, BriefSongModel, LyricModel, SupportsSongSimilar, BriefSongProtocol, SupportsSongHotComments, \
     SupportsAlbumGet, BriefAlbumModel, SupportsPlaylistAddSong, SupportsPlaylistRemoveSong, BriefUserModel, \
-    BriefArtistModel
+    BriefArtistModel, SearchType as FuoSearchType, ModelType, SimpleSearchResult
 from feeluown.media import Quality, Media, MediaType, VideoAudioManifest
-from feeluown.models import SearchType as FuoSearchType, ModelType
 from feeluown.utils.reader import SequentialReader
 
 from fuo_bilibili import __identifier__, __alias__
@@ -148,7 +147,7 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
     def sms_code_login(self, request: SmsCodeLoginRequest) -> SmsCodeLoginResponse:
         return self._api.sms_code_login(request)
 
-    def search(self, keyword, type_, *args, **kwargs) -> Optional[BSearchModel]:
+    def search(self, keyword, type_, *args, **kwargs) -> Optional[SimpleSearchResult]:
         request = self._format_search_request(keyword, type_)
         if isinstance(request, Tuple):
             response = tuple([self._api.search(r) for r in request])
