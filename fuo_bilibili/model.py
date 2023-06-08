@@ -2,8 +2,8 @@ from typing import List, Union, Optional, Tuple
 
 from bs4 import BeautifulSoup
 from feeluown.library import SongModel, BriefArtistModel, PlaylistModel, BriefPlaylistModel, BriefUserModel, \
-    BriefSongModel, ArtistModel, CommentModel, VideoModel, BriefVideoModel, BriefAlbumModel, AlbumModel
-from feeluown.models import SearchModel, ModelExistence
+    BriefSongModel, ArtistModel, CommentModel, VideoModel, BriefVideoModel, BriefAlbumModel, AlbumModel, \
+    SimpleSearchResult
 
 from fuo_bilibili import __identifier__
 from fuo_bilibili.api import SearchType
@@ -152,7 +152,6 @@ class BSongModel(SongModel):
             duration=result.duration.total_seconds() * 1000,
             lyric=lrc,
             pic_url=result.pic,
-            exists=ModelExistence.yes,
         )
 
     @classmethod
@@ -204,7 +203,7 @@ class BAlbumModel(AlbumModel):
         )
 
 
-class BSearchModel(SearchModel):
+class BSearchModel:
     PROVIDER_ID = __identifier__
 
     # ['q', 'songs', 'playlists', 'artists', 'albums', 'videos']
@@ -263,15 +262,14 @@ class BSearchModel(SearchModel):
         # fixme: implements multiple search types
         match SearchType.BANGUMI if isinstance(request, Tuple) else request.search_type:
             case SearchType.VIDEO:
-                songs = list(map(lambda r_: BSongModel.create_model(r_), results))
+                songs = list(map(lambda r_: cls.create_model(r_), results))
             case SearchType.BILI_USER:
                 artists = list(map(cls.search_user_model, results))
             case SearchType.LIVE_ROOM:
                 videos = list(map(cls.search_live_model, results))
             case SearchType.BANGUMI:
                 albums = list(map(cls.search_media_model, results))
-        return cls(
-            source=PROVIDER_ID,
+        return SimpleSearchResult(
             q=request[0].keyword if isinstance(request, Tuple) else request.keyword,
             songs=songs,
             artists=artists,

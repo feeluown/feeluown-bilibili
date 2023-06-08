@@ -8,9 +8,8 @@ from feeluown.excs import NoUserLoggedIn
 from feeluown.library import AbstractProvider, ProviderV2, ProviderFlags as Pf, UserModel, VideoModel, \
     BriefPlaylistModel, BriefSongModel, LyricModel, SupportsSongSimilar, BriefSongProtocol, SupportsSongHotComments, \
     SupportsAlbumGet, BriefAlbumModel, SupportsPlaylistAddSong, SupportsPlaylistRemoveSong, BriefUserModel, \
-    BriefArtistModel
+    BriefArtistModel, SearchType as FuoSearchType, ModelType
 from feeluown.media import Quality, Media, MediaType, VideoAudioManifest
-from feeluown.models import SearchType as FuoSearchType, ModelType
 from feeluown.utils.reader import SequentialReader
 
 from fuo_bilibili import __identifier__, __alias__
