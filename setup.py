@@ -11,7 +11,7 @@ package_data = \
 {'': ['*'], 'fuo_bilibili': ['assets/*']}
 
 install_requires = \
-['beautifulsoup4', 'cachetools', 'feeluown>=3.8.7', 'pycryptodomex']
+['beautifulsoup4', 'cachetools', 'feeluown>=3.8.7', 'pycryptodome']
 
 entry_points = \
 {'fuo.plugins_v1': ['bilibili = fuo_bilibili']}
