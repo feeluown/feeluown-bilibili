@@ -11,8 +11,8 @@ def rsa_encrypt(text: str, public_key: str) -> str:
     :return:
     """
     import base64
-    from Cryptodome.PublicKey import RSA
-    from Cryptodome.Cipher import PKCS1_v1_5
+    from Crypto.PublicKey import RSA
+    from Crypto.Cipher import PKCS1_v1_5
     key = RSA.import_key(public_key.encode())
     encrypted = PKCS1_v1_5.new(key).encrypt(text.encode())
     return base64.b64encode(encrypted).decode()
