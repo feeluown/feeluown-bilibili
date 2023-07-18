@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Any, List, Union
 
-from pydantic import BaseModel, validator, Field
+from fuo_bilibili.api.compat import BaseModel, validator, Field
 
 from fuo_bilibili.api.schema.enums import VideoQualityNum, CodecId, VideoCopyright, VideoState, VideoFrom, SearchType, \
     VipType, MediaType

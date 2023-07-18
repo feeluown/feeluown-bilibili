@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from fuo_bilibili.api.compat import BaseModel, Field
 
 from fuo_bilibili.api.schema.enums import VideoQualityNum, VideoFnval, SearchType, SearchOrderType, UserType, \
     VideoDurationType, FavoriteResourceOrderType, CommentType

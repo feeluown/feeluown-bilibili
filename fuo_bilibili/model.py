@@ -150,7 +150,7 @@ class BSongModel(SongModel):
                 name=result.owner.name,
             )],
             duration=result.duration.total_seconds() * 1000,
-            lyric=lrc,
+            lyric=lrc or '',
             pic_url=result.pic,
         )
 
@@ -204,8 +204,6 @@ class BAlbumModel(AlbumModel):
 
 
 class BSearchModel:
-    PROVIDER_ID = __identifier__
-
     # ['q', 'songs', 'playlists', 'artists', 'albums', 'videos']
     q: str
     songs = List[BSongModel]
@@ -279,8 +277,6 @@ class BSearchModel:
 
 
 class BPlaylistModel(PlaylistModel):
-    PROVIDER_ID = __identifier__
-
     count: int
 
     @classmethod
@@ -448,8 +444,6 @@ class BPlaylistModel(PlaylistModel):
 
 
 class BArtistModel(ArtistModel):
-    PROVIDER_ID = __identifier__
-
     @classmethod
     def create_model(cls, resp: UserInfoResponse, video_resp: UserBestVideoResponse) -> 'BArtistModel':
         alias = []
@@ -468,8 +462,6 @@ class BArtistModel(ArtistModel):
 
 
 class BCommentModel(CommentModel):
-    PROVIDER_ID = __identifier__
-
     @classmethod
     def create_model(cls, reply: VideoHotCommentsResponse.VideoHotCommentsResponseData.Reply):
         return cls(

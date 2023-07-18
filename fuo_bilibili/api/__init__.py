@@ -5,7 +5,7 @@ from typing import Type, Optional, Union, List
 
 import requests.cookies
 from cachetools import TTLCache, cached
-from pydantic import BaseModel
+from .compat import BaseModel
 
 from fuo_bilibili.api.audio import AudioMixin
 from fuo_bilibili.api.base import BaseMixin

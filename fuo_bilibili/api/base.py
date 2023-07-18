@@ -1,6 +1,6 @@
 from typing import Type, Any, Optional, Union
 
-from pydantic import BaseModel
+from .compat import BaseModel
 
 from fuo_bilibili.api.schema.requests import SearchRequest, BaseRequest, PaginatedRequest, HomeRecommendVideosRequest, \
     HomeDynamicVideoRequest
