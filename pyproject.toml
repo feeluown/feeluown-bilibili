@@ -14,7 +14,7 @@ python = "^3.10"
 feeluown = ">=3.8.7"
 cachetools = "*"
 beautifulsoup4 = "*"
-pycryptodomex = "*"
+pycryptodome = "*"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
