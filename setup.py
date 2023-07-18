@@ -18,7 +18,7 @@ entry_points = \
 
 setup_kwargs = {
     'name': 'feeluown-bilibili',
-    'version': '0.1.5',
+    'version': '0.2.0',
     'description': 'Bilibili provider for FeelUOwn player.',
     'long_description': '# Yet another bilibili plugin for FeelUOwn player\n\n![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/brucezhang1993/feeluown-bilibili/build.yml?style=for-the-badge)\n![AUR version](https://img.shields.io/aur/version/feeluown-bilibili?style=for-the-badge)\n![PyPI](https://img.shields.io/pypi/v/feeluown_bilibili?style=for-the-badge)\n![PyPI - Python Version](https://img.shields.io/pypi/pyversions/feeluown_bilibili?style=for-the-badge)\n![Libraries.io dependency status for GitHub repo](https://img.shields.io/librariesio/github/brucezhang1993/feeluown-bilibili?style=for-the-badge)\n\n## Prerequisite\n\nYou must have [FeelUOwn](https://github.com/feeluown/FeelUOwn) first\n\n- Python >= 3.10  \n- FeelUOwn >= 3.8.7\n\n## Installation\n\n### PyPI\n\nhttps://pypi.org/project/feeluown-bilibili/\n\n```shell\npip install feeluown-bilibili\n```\n\n### Arch Linux\n\nhttps://aur.archlinux.org/packages/feeluown-bilibili\n\n```shell\nyay -S feeluown-bilibili\n```\n\n## Development\n\n```shell\npoetry install\npoetry run pre-commit install\n```\n\n## License\n\n[GPL-3.0](https://github.com/BruceZhang1993/feeluown-bilibili/blob/master/LICENSE.txt)\n\n## Special notes\n\n- Proudly use [danmaku2ass](https://github.com/m13253/danmaku2ass) to transform danmaku format\n- Proudly use [poetry](https://python-poetry.org/) as dependency manager tool\n',
     'author': 'Bruce Zhang',
