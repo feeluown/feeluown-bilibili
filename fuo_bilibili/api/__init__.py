@@ -1,6 +1,6 @@
 import json
 from datetime import timedelta
-from http.cookiejar import MozillaCookieJar
+from http.cookiejar import MozillaCookieJar, CookieJar
 from typing import Type, Optional, Union, List
 
 import requests.cookies
@@ -32,8 +32,17 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
     TIMEOUT = 10
 
     def __init__(self):
+        self._headers = {
+            'Referer': 'https://www.bilibili.com/',
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2)'
+                          ' AppleWebKit/537.36 (KHTML, like Gecko)'
+                          ' Chrome/33.0.1750.152 Safari/537.36'
+        }
         self._cookie = MozillaCookieJar(PLUGIN_API_COOKIEJAR_FILE)
         self._session = requests.Session()
+        # The header cause some API failing
+        # 1. self.nav_info
+        # self._session.headers.update(self._headers)
         self._session.cookies = self._cookie
 
     @staticmethod
@@ -42,15 +51,26 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
             return False
         return True
 
+    def get_session(self):
+        return self._session
+
+    def get_cookies(self):
+        return self._session.cookies
+
     @staticmethod
     def remove_cookie():
         PLUGIN_API_COOKIEJAR_FILE.unlink(missing_ok=True)
+
+    def from_cookiejar(self, jar: CookieJar):
+        for cookie in jar:
+            if 'bilibili.com' in cookie.domain:
+                self._cookie.set_cookie(cookie)
+        self._dump_cookie_to_file()
 
     def load_cookies(self):
         self._cookie.load()
 
     def _dump_cookie_to_file(self):
-        print('dumping cookies to file')
         self._cookie.save()
 
     @staticmethod
@@ -70,7 +90,6 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
 
     def get_uncached(self, url: str, param: Optional[BaseRequest], clazz: Union[Type[BaseResponse], Type[BaseModel], None], **kwargs) \
             -> Union[BaseResponse, BaseModel, None]:
-        print(f'Requesting: {url}...')
         if param is None:
             r = self._session.get(url, timeout=self.TIMEOUT, **kwargs)
         else:
@@ -86,16 +105,13 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
             raise RuntimeError(f'code not ok: {res.message}')
         return res
 
-    @cached(CACHE)
     def get(self, url: str, param: Optional[BaseRequest], clazz: Union[Type[BaseResponse], Type[BaseModel], None], **kwargs)\
             -> Union[BaseResponse, BaseModel, None]:
         return self.get_uncached(url, param, clazz, **kwargs)
 
-    @cached(CACHE)
     def get_content(self, url: str) -> str:
         return self._session.get(url).text
 
-    @cached(CACHE)
     def get_content_raw(self, url: str) -> bytes:
         return self._session.get(url).content
 

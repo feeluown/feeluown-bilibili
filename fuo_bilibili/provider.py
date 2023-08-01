@@ -138,6 +138,9 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
         )
         return user
 
+    def cookiejar_login(self, jar):
+        self._api.from_cookiejar(jar)
+
     def sms_send_code(self, request: SendSmsCodeRequest) -> SendSmsCodeResponse:
         return self._api.send_sms_code(request)
 

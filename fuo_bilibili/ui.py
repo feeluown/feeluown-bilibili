@@ -6,7 +6,7 @@ from typing import Optional
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QCloseEvent
 from PyQt5.QtWidgets import QDialog, QLineEdit, QVBoxLayout, QPushButton, QLabel, QFrame, QTabWidget, QMessageBox, \
-    QAction, QInputDialog
+    QAction, QInputDialog, QWidget
 from feeluown.app.gui_app import GuiApp
 from feeluown.gui import ProviderUiManager
 from feeluown.library import UserModel
@@ -18,6 +18,33 @@ from fuo_bilibili.geetest.server import GeetestAuthServer
 from fuo_bilibili.util import rsa_encrypt, get_random_available_port
 
 logger = logging.getLogger(__name__)
+
+
+class KeyringLoginWidget(QWidget):
+    finished = pyqtSignal()
+
+    def __init__(self, provider: BilibiliProvider, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._provider = provider
+        self._chrome_btn = QPushButton('从 Chrome 中读取 Cookie')
+
+        self._layout = QVBoxLayout(self)
+        self._layout.addWidget(self._chrome_btn)
+        self._chrome_btn.clicked.connect(self._get_cookies_from_chrome)
+
+    def _get_cookies_from_chrome(self):
+        from feeluown.utils.yt_dlp_cookies import load_cookies
+        jar = load_cookies(None, ['chrome'], None)
+        self._provider.cookiejar_login(jar)
+        self.finished.emit()
+
+    @classmethod
+    def is_supported(cls):
+        try:
+            from feeluown.utils.yt_dlp_cookies import load_cookies  # noqa
+        except ImportError:
+            return False
+        return True
 
 
 class BAuthDialog(QDialog):
@@ -115,10 +142,9 @@ class BAuthDialog(QDialog):
 
 
 class BLoginDialog(QDialog):
-    """
-    登录框
-    """
-    def __init__(self, parent=None, provider=None):
+    login_succeed = pyqtSignal()
+
+    def __init__(self, parent=None, provider=None, ui_manger=None):
         super(BLoginDialog, self).__init__(parent)
         self._captcha_id = None
         self._provider: BilibiliProvider = provider
@@ -146,6 +172,7 @@ class BLoginDialog(QDialog):
         self.sms_send_btn.clicked.connect(self._start_auth_code)
         # noinspection PyUnresolvedReferences
         self.sms_ok_btn.clicked.connect(self._start_sms_login)
+
         # 密码登录
         self._pw_tab = QFrame(self._tab)
         self.username_input = QLineEdit(self._pw_tab)
@@ -164,11 +191,30 @@ class BLoginDialog(QDialog):
         self._auth_dialog = BAuthDialog(self, provider)
         # noinspection PyUnresolvedReferences
         self.ok_btn.clicked.connect(self._start_auth)
-        self._tab.addTab(self._sms_tab, '验证码登录')
-        self._tab.addTab(self._pw_tab, '密码登录')
+
+        # NOTE(cosven, 2023-08-01): 这两个登录方法已经不可用了
+        self._sms_tab.hide()
+        self._pw_tab.hide()
+        # self._tab.addTab(self._sms_tab, '验证码登录')
+        # self._tab.addTab(self._pw_tab, '密码登录')
+        if KeyringLoginWidget.is_supported():
+            # keyring 登录
+            self._keyring_tab = KeyringLoginWidget(self._provider, parent=self._tab)
+            self._tab.addTab(self._keyring_tab, 'Keyring 登录')
+            self._keyring_tab.finished.connect(self._finish_keyring_login)
+        else:
+            self._tab.addTab(
+                QLabel('登录功能从 2023-08-01 开始，已经无法使用', self),
+                '提示',
+            )
+
         # auth back signal
         # noinspection PyUnresolvedReferences
         self._auth_dialog.auth_success.connect(self._auth_back)
+
+    def _finish_keyring_login(self):
+        self.close()
+        self.login_succeed.emit()
 
     def _start_auth(self):
         self._auth_dialog.setWindowTitle('密码登录验证')
@@ -268,6 +314,8 @@ class BUiManager:
         # noinspection PyUnresolvedReferences
         new_pl_action.triggered.connect(self.new_playlist)
         self._initial_pages()
+
+        self.login_dialog.login_succeed.connect(self._login_or_get_user)
 
     def new_playlist(self):
         name, o1 = QInputDialog.getText(self._app.ui.left_panel.playlists_header, '新建收藏夹', '收藏夹标题')
