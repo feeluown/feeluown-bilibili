@@ -337,6 +337,8 @@ class BPlaylistModel(PlaylistModel):
 
     @classmethod
     def create_audio_model_list(cls, resp: AudioFavoriteListResponse) -> List[BriefPlaylistModel]:
+        if resp.data is None:
+            return []
         return [cls.create_audio_brief_model(p) for p in resp.data.data]
 
     @classmethod

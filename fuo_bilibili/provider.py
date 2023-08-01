@@ -127,6 +127,7 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
     def get_current_user(self):
         if self._user is None:
             raise NoUserLoggedIn
+        return self._user
 
     def user_info(self) -> UserModel:
         data: NavInfoResponse.NavInfoResponseData = self._api.nav_info().data
@@ -186,7 +187,7 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
     def song_get_lyric(self, song) -> Optional[LyricModel]:
         if not hasattr(song, 'lyric') or song.lyric is None or len(song.lyric) == 0:
             song = self.song_get(song.identifier)
-        if song.lyric is None:
+        if not song.lyric:
             return None
         if song.lyric.endswith('.json'):
             json_data = self._api.get_content(song.lyric)
@@ -195,12 +196,7 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
                 identifier=song.identifier,
                 content=json_to_lrc_text(json_data),
             )
-        else:
-            return LyricModel(
-                source=__identifier__,
-                identifier=song.identifier,
-                content=self._api.get_content(song.lyric),
-            )
+        return None
 
     def _get_video_avid(self, bvid: str) -> int:
         avid = self._video_avids.get(bvid)
