@@ -133,6 +133,22 @@ class BSongModel(SongModel):
         lrc = None
         if result.subtitle.list is not None and len(result.subtitle.list) > 0:
             lrc = result.subtitle.list[0].subtitle_url
+
+        children = []
+        for page in result.pages:
+            # Need not set album and artists for song.children,
+            # because they are actually medias with titles and identifier.
+            song = cls(
+                source=__identifier__,
+                identifier=f'paged_{result.bvid}__{page.page}',
+                album=None,
+                title=page.part,
+                artists=[],
+                duration=page.duration.total_seconds() * 1000,
+                pic_url=result.pic,
+            )
+            children.append(song)
+
         return cls(
             source=__identifier__,
             identifier=result.bvid,
@@ -152,6 +168,7 @@ class BSongModel(SongModel):
             duration=result.duration.total_seconds() * 1000,
             lyric=lrc or '',
             pic_url=result.pic,
+            children=children,
         )
 
     @classmethod

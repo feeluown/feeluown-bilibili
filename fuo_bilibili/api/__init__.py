@@ -102,7 +102,7 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
         response_str = r.text
         res: Union[BaseResponse, BaseModel] = clazz.parse_raw(response_str)
         if isinstance(res, BaseResponse) and res.code != 0:
-            raise RuntimeError(f'code not ok: {res.message}')
+            raise RuntimeError(f'code not ok: {res}, url:{url}, param:{param}')
         return res
 
     def get(self, url: str, param: Optional[BaseRequest], clazz: Union[Type[BaseResponse], Type[BaseModel], None], **kwargs)\

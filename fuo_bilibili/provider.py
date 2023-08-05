@@ -4,7 +4,7 @@ from pathlib import Path
 from time import time
 from typing import List, Optional, Union, Tuple
 
-from feeluown.excs import NoUserLoggedIn
+from feeluown.excs import NoUserLoggedIn, MediaNotFound
 from feeluown.library import AbstractProvider, ProviderV2, ProviderFlags as Pf, UserModel, VideoModel, \
     BriefPlaylistModel, BriefSongModel, LyricModel, SupportsSongSimilar, BriefSongProtocol, SupportsSongHotComments, \
     SupportsAlbumGet, BriefAlbumModel, SupportsPlaylistAddSong, SupportsPlaylistRemoveSong, BriefUserModel, \
@@ -39,9 +39,21 @@ SEARCH_TYPE_MAP = {
 }
 
 
+def is_child_model(model):
+    return model.identifier.startswith('paged_')
+
+
+def parse_paged_identifier(identifier: str):
+    identifier, page_num = identifier[6:].split('__')
+    return identifier, page_num
+
+
 class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, SupportsSongHotComments, SupportsAlbumGet,
                        SupportsPlaylistAddSong, SupportsPlaylistRemoveSong):
     def playlist_add_song(self, playlist, song) -> bool:
+        if is_child_model(song):
+            return False
+
         match playlist.identifier:
             case 'LATER':
                 self._api.history_add_later_videos(HistoryAddLaterVideosRequest(bvid=song.identifier))
@@ -58,6 +70,9 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
         return True
 
     def playlist_remove_song(self, playlist, song) -> bool:
+        if is_child_model(song):
+            return False
+
         match playlist.identifier:
             case 'LATER':
                 self._api.history_del_later_videos(
@@ -162,11 +177,25 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
     def song_get(self, identifier) -> Optional[BSongModel]:
         if identifier.startswith('audio_'):
             return None
+
+        if identifier.startswith('paged_'):
+            identifier, page_num = parse_paged_identifier(identifier)
+        else:
+            identifier, page_num = identifier, None
+
         response = self._api.video_get_info(VideoInfoRequest(bvid=identifier))
-        return BSongModel.create_info_model(response)
+        song = BSongModel.create_info_model(response)
+        if page_num is not None:
+            try:
+                song.children[int(page_num)-1]
+            except IndexError:
+                return None
+        return song
 
     def song_list_similar(self, song: BriefSongProtocol) -> List[BriefSongModel]:
         if song.identifier.startswith('audio_'):
+            return []
+        if is_child_model(song):
             return []
         resp = self._api.video_get_related(VideoInfoRequest(bvid=song.identifier))
         return [BSongModel.create_history_brief_model(media) for media in resp.data]
@@ -185,6 +214,9 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
         return [BCommentModel.create_model(comment) for comment in resp.data.replies]
 
     def song_get_lyric(self, song) -> Optional[LyricModel]:
+        if is_child_model(song):
+            return None
+
         if not hasattr(song, 'lyric') or song.lyric is None or len(song.lyric) == 0:
             song = self.song_get(song.identifier)
         if not song.lyric:
@@ -206,13 +238,30 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
             avid = info.data.aid
         return avid
 
-    def _get_video_cid(self, bvid):
+    def _get_video_id_pair(self, identifier, use_first_page=False):
+        """
+        Some videos/songs has multiple pages, if use_first_page is specified,
+        the first page will be used. Otherwise, raise MediaNotFound error
+        (because we do not know which page to return).
+        """
+        if identifier.startswith('paged_'):
+            bvid, page_num = parse_paged_identifier(identifier)
+            page_num = int(page_num)
+        else:
+            bvid = identifier
+            page_num = -1 if use_first_page else -2
+
         cid = self._video_cids.get(bvid)
         if cid is None:
             info = self._api.video_get_info(VideoInfoRequest(bvid=bvid))
-            self._video_cids[bvid] = info.data.cid
-            cid = info.data.cid
-        return cid
+            if page_num >= 0:
+                cid = info.data.pages[page_num-1].cid
+            else:
+                if len(info.data.pages) > 1 and page_num != -1:
+                    raise MediaNotFound(reason=MediaNotFound.Reason.check_children)
+                self._video_cids[bvid] = info.data.cid
+                cid = info.data.cid
+        return bvid, cid
 
     def _get_video_dimension(self, bvid):
         info = self._api.video_get_info(VideoInfoRequest(bvid=bvid))
@@ -221,9 +270,11 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
     def video_list_quality(self, video) -> List[Quality.Video]:
         if video.identifier.startswith('live_'):
             return [Quality.Video.hd]
+
+        bvid, cid = self._get_video_id_pair(video.identifier, use_first_page=True)
         response = self._api.video_get_url(PlayUrlRequest(
-            bvid=video.identifier,
-            cid=self._get_video_cid(video.identifier),
+            bvid=bvid,
+            cid=cid,
             fnval=VideoFnval.FLV
         ))
         qualities = set([q.get_quality() for q in response.data.accept_quality])
@@ -232,6 +283,8 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
 
     def song_get_mv(self, song) -> Optional[VideoModel]:
         if song.identifier.startswith('audio_'):
+            return None
+        if is_child_model(song):
             return None
         song = self.song_get(song.identifier)
         return VideoModel(
@@ -277,11 +330,11 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
                 return None
             return Media(resp.data.durl[0].url, format='m3u8',
                          http_headers={'Referer': 'https://www.bilibili.com/'})
-        video_cid = self._get_video_cid(video.identifier)
+        bvid, cid = self._get_video_id_pair(video.identifier, use_first_page=True)
         response = self._api.video_get_url(PlayUrlRequest(
-            bvid=video.identifier,
+            bvid=bvid,
             qn=VideoQualityNum.q1080p60,
-            cid=video_cid,
+            cid=cid,
             fnval=VideoFnval.DASH
         ))
         # select audio
@@ -298,7 +351,7 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
         if videos is None or len(videos) == 0:
             return None
         if len(signature(VideoAudioManifest).parameters) == 3:
-            danmaku_path = self._get_video_danmaku(video_cid, video.identifier)
+            danmaku_path = self._get_video_danmaku(cid, video.identifier)
             if not danmaku_path.exists():
                 danmaku_path = None
             manifest = VideoAudioManifest(videos[0].base_url, audios[0].base_url,
@@ -310,9 +363,11 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
     def song_list_quality(self, song) -> List[Quality.Audio]:
         if song.identifier.startswith('audio_'):
             return [Quality.Audio.hq]
+
+        bvid, cid = self._get_video_id_pair(song.identifier)
         response = self._api.video_get_url(PlayUrlRequest(
-            bvid=song.identifier,
-            cid=self._get_video_cid(song.identifier),
+            bvid=bvid,
+            cid=cid,
             fnval=VideoFnval.DASH
         ))
         song_bitrates = [a.bandwidth for a in response.data.dash.audio]
@@ -336,9 +391,11 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
                 return None
             return Media(resp.data.cdns[0], type_=MediaType.audio, format='m4a',
                          http_headers={'Referer': 'https://www.bilibili.com/'})
+
+        bvid, cid = self._get_video_id_pair(song.identifier)
         response = self._api.video_get_url(PlayUrlRequest(
-            bvid=song.identifier,
-            cid=self._get_video_cid(song.identifier),
+            bvid=bvid,
+            cid=cid,
             fnval=VideoFnval.DASH
         ))
         audios = sorted(response.data.dash.audio, key=lambda a: a.bandwidth, reverse=True)
