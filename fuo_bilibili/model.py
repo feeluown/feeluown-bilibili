@@ -30,25 +30,12 @@ class BSongModel(SongModel):
 
     @classmethod
     def create_audio_model(cls, au: AudioPlaylistSong) -> Optional['BSongModel']:
-        return cls(
+        return BriefSongModel(
             source=__identifier__,
             identifier=f'audio_{au.id}',
-            album=BBriefAlbumModel(
-                source=PROVIDER_ID,
-                identifier=au.uid,
-                name=au.author,
-                artists_name=au.author,
-                cover=au.cover,
-            ),
             title=au.title,
-            artists=[BriefArtistModel(
-                source=PROVIDER_ID,
-                identifier=au.uid,
-                name=au.author,
-            )],
-            duration=au.duration.total_seconds() * 1000,
-            lyric=au.lyric,
-            pic_url=au.cover,
+            artists_name=au.author,
+            duration_ms=format_timedelta_to_hms(au.duration),
         )
 
     @classmethod
@@ -62,25 +49,13 @@ class BSongModel(SongModel):
         )
 
     @classmethod
-    def create_hot_model(cls, item: UserBestVideoResponse.BestVideo):
-        return cls(
+    def create_hot_model(cls, result: UserBestVideoResponse.BestVideo):
+        return BriefSongModel(
             source=__identifier__,
-            identifier=item.bvid,
-            album=BBriefAlbumModel(
-                source=PROVIDER_ID,
-                identifier=item.owner.mid,
-                name=item.owner.name,
-                artists_name=item.owner.name,
-                cover=item.owner.face,
-            ),
-            title=BeautifulSoup(item.title).get_text(),
-            artists=[BriefArtistModel(
-                source=PROVIDER_ID,
-                identifier=item.owner.mid,
-                name=item.owner.name,
-            )],
-            duration=item.duration.total_seconds() * 1000,
-            pic_url=item.pic,
+            identifier=result.bvid,
+            title=BeautifulSoup(result.title).get_text(),
+            artists_name=result.owner.name,
+            duration_ms=format_timedelta_to_hms(result.duration)
         )
 
     @classmethod
@@ -107,24 +82,12 @@ class BSongModel(SongModel):
 
     @classmethod
     def create_model(cls, result: SearchResultVideo) -> 'BSongModel':
-        return cls(
+        return BriefSongModel(
             source=__identifier__,
             identifier=result.bvid,
-            album=BBriefAlbumModel(
-                source=PROVIDER_ID,
-                identifier=result.mid,
-                name=result.author,
-                artists_name=result.author,
-                cover=result.pic,
-            ),
             title=BeautifulSoup(result.title).get_text(),
-            artists=[BriefArtistModel(
-                source=PROVIDER_ID,
-                identifier=result.mid,
-                name=result.author,
-            )],
-            duration=result.duration.total_seconds() * 1000,
-            pic_url=result.pic,
+            artists_name=result.author,
+            duration_ms=format_timedelta_to_hms(result.duration)
         )
 
     @classmethod
