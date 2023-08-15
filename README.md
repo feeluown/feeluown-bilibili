@@ -10,8 +10,8 @@
 
 You must have [FeelUOwn](https://github.com/feeluown/FeelUOwn) first
 
-- Python >= 3.10  
-- FeelUOwn >= 3.8.7
+- Python >= 3.10
+- FeelUOwn >= 3.8.14
 
 ## Installation
 
