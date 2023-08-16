@@ -1,34 +1,23 @@
-name: Release package
+name: Publish package to PyPI
 on:
   push:
     tags:
-      - '*'
+      - v*
 
 jobs:
-  build:
+  build-n-publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-      - uses: abatilo/actions-poetry@v2.0.0
-        with:
-          poetry-version: '1.3.2'
-      - name: Clean dist folder
-        run: rm -rf dist
-      - name: Install dependencies
-        run: poetry install
-      - id: pkgver
-        name: Get package version
-        run: echo ::set-output name=version::$(poetry version -s)
-      - name: Build package
-        run: poetry build
-      - name: Upload release
-        if: ${{ github.ref_name == steps.pkgver.outputs.version }}
-        run: poetry publish -u __token__ -p ${{ secrets.PYPI_RELEASE_API_TOKEN }}
-      - name: Create GitHub Release
-        uses: ncipollo/release-action@v1.10.0
-        with:
-          artifacts: "dist/*.whl,dist/*.tar.gz"
-          bodyFile: "BODY.md"
+    - uses: actions/checkout@master
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
+    - name: Build
+      run: >-
+        python setup.py sdist
+    - name: Publish
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        user: __token__
+        password: ${{ secrets.PYPI_RELEASE_API_TOKEN}}
