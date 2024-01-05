@@ -167,6 +167,8 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
         return self._api.sms_code_login(request)
 
     def search(self, keyword, type_, *args, **kwargs) -> Optional[SimpleSearchResult]:
+        if not self.has_current_user():
+            return None
         request = self._format_search_request(keyword, type_)
         if isinstance(request, Tuple):
             response = tuple([self._api.search(r) for r in request])
