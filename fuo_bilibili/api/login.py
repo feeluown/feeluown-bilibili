@@ -3,9 +3,10 @@ from typing import Type, Any, Optional, Union
 from .compat import BaseModel
 
 from fuo_bilibili.api.schema.requests import BaseRequest, PasswordLoginRequest, SendSmsCodeRequest, \
-    SmsCodeLoginRequest
+    SmsCodeLoginRequest, BaseCsrfRequest
 from fuo_bilibili.api.schema.responses import BaseResponse, RequestCaptchaResponse, \
-    RequestLoginKeyResponse, PasswordLoginResponse, SendSmsCodeResponse, SmsCodeLoginResponse
+    RequestLoginKeyResponse, PasswordLoginResponse, SendSmsCodeResponse, SmsCodeLoginResponse, \
+    CookieInfoResponse
 
 
 class LoginMixin:
@@ -25,6 +26,10 @@ class LoginMixin:
 
     def _dump_cookie_to_file(self):
         pass
+
+    def cookie_info(self) -> CookieInfoResponse:
+        url = f'{self.PASSPORT_BASE}/x/passport-login/web/cookie/info'
+        return self.get_uncached(url, BaseCsrfRequest(), CookieInfoResponse)
 
     def request_captcha(self) -> RequestCaptchaResponse:
         url = f'{self.PASSPORT_BASE}/x/passport-login/captcha'

@@ -40,9 +40,9 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
         }
         self._cookie = MozillaCookieJar(PLUGIN_API_COOKIEJAR_FILE)
         self._session = requests.Session()
-        # The header cause some API failing
-        # 1. self.nav_info
-        # self._session.headers.update(self._headers)
+        # UPDATE(2024-01-11): To make self.nav_info work, the header needs to be added
+        # UPDATE(2023-xx-xx): The header cause some API failing: self.nav_info
+        self._session.headers.update(self._headers)
         self._session.cookies = self._cookie
 
     @staticmethod
@@ -93,7 +93,11 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
         if param is None:
             r = self._session.get(url, timeout=self.TIMEOUT, **kwargs)
         else:
-            r = self._session.get(url, timeout=self.TIMEOUT, params=json.loads(param.json(exclude_none=True)), **kwargs)
+            if isinstance(param, BaseCsrfRequest):
+                param.csrf = self._get_csrf()
+            r = self._session.get(url, timeout=self.TIMEOUT,
+                                  params=json.loads(param.json(exclude_none=True)),
+                                  **kwargs)
         if r.status_code != 200:
             print(r.text)
             raise RuntimeError('http not 200')

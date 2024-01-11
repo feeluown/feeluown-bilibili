@@ -372,11 +372,12 @@ class BUiManager:
 
     def _login(self):
         self._user = self._provider.auth(None)
+        if self._user is not None:
+            self._pvd_item.text = f'{__alias__}已登录：{self._user.name} UID:{self._user.identifier}'
         asyncio.ensure_future(self.load_user_content())
 
     def _login_or_get_user(self):
         if self._provider.cookie_check():
             self._login()
-            self._pvd_item.text = f'{__alias__}已登录：{self._user.name} UID:{self._user.identifier}'
             return
         self.login_dialog.show()

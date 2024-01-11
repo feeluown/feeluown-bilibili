@@ -178,6 +178,14 @@ class RequestLoginKeyResponse(BaseModel):
     key: str
 
 
+class CookieInfoResponse(BaseResponse):
+    class CookieInfoResponseData(BaseModel):
+        refresh: bool
+        timestamp: int
+
+    data: CookieInfoResponseData = None
+
+
 class SendSmsCodeResponse(BaseResponse):
     class SendSmsCodeResponseData(BaseModel):
         captcha_key: str
