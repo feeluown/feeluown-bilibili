@@ -20,7 +20,7 @@ class UserMixin:
         pass
 
     def user_info(self, param: UserInfoRequest) -> UserInfoResponse:
-        url = f'{self.APIX_BASE}/space/acc/info'
+        url = f'{self.APIX_BASE}/space/wbi/acc/info'
         return self.get_uncached(url, param, UserInfoResponse, headers={
             'user-agent': 'Mozilla/5.0',
             'referer': 'https://www.bilibili.com',
@@ -31,7 +31,7 @@ class UserMixin:
         return self.get(url, request, UserBestVideoResponse)
 
     def user_videos(self, request: UserVideoRequest) -> UserVideoResponse:
-        url = f'{self.APIX_BASE}/space/arc/search'
+        url = f'{self.APIX_BASE}/space/wbi/arc/search'
         return self.get(url, request, UserVideoResponse)
 
     def user_following(self, request: UserFollowingRequest) -> UserFollowingResponse:

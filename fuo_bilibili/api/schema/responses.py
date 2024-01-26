@@ -228,6 +228,10 @@ class NavInfoResponse(BaseResponse):
             bcoin_balance: int  # B币
             coupon_balance: int  # 赠送B币数
 
+        class Wbi(BaseModel):
+            img_url: str
+            sub_url: str
+
         isLogin: bool
         email_verified: bool = None
         face: str = None
@@ -243,6 +247,7 @@ class NavInfoResponse(BaseResponse):
         wallet: Wallet = None
         level_info: LevelInfo = None
         vip_label: VipLabel = None
+        wbi_img: Wbi = None
 
         @classmethod
         @validator('vipDueDate')
@@ -817,8 +822,8 @@ class VideoHotCommentsResponse(BaseResponse):
 
             class Content(BaseModel):
                 message: str
-                plat: int
-                device: str
+                # plat: int
+                # device: str
 
             rpid: int
             like: int

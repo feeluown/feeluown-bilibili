@@ -8,7 +8,7 @@ from feeluown.excs import NoUserLoggedIn, MediaNotFound
 from feeluown.library import AbstractProvider, ProviderV2, ProviderFlags as Pf, UserModel, VideoModel, \
     BriefPlaylistModel, BriefSongModel, LyricModel, SupportsSongSimilar, BriefSongProtocol, SupportsSongHotComments, \
     SupportsAlbumGet, BriefAlbumModel, SupportsPlaylistAddSong, SupportsPlaylistRemoveSong, BriefUserModel, \
-    BriefArtistModel, SearchType as FuoSearchType, ModelType, SimpleSearchResult
+    BriefArtistModel, SearchType as FuoSearchType, ModelType, SimpleSearchResult, ModelNotFound
 from feeluown.media import Quality, Media, MediaType, VideoAudioManifest
 from feeluown.utils.reader import SequentialReader
 
@@ -146,6 +146,7 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
 
     def user_info(self) -> UserModel:
         data: NavInfoResponse.NavInfoResponseData = self._api.nav_info().data
+        self._api.set_wbi(data.wbi_img)
         user = UserModel(
             source=__identifier__,
             identifier=str(data.mid),
@@ -479,7 +480,7 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
             _, __, ssid = identifier.split('_')
             resp = self._api.media_bangumi_get_list(MediaGetListRequest(season_id=ssid))
             return BAlbumModel.create_season_model(resp.result)
-        return None
+        raise ModelNotFound(f'album:{identifier} not found')
 
     def playlist_get(self, identifier: str) -> Optional[BPlaylistModel]:
         # fixme: fuo should support playlist_get v2 first

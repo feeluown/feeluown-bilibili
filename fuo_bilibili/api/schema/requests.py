@@ -9,6 +9,10 @@ class BaseRequest(BaseModel):
         return hash(self.json())
 
 
+class BaseWbiRequest(BaseRequest):
+    pass
+
+
 class GeetestBase(BaseModel):
     token: str
     challenge: str
@@ -119,7 +123,7 @@ class HomeDynamicVideoRequest(BaseRequest):
     page: int = 1
 
 
-class UserInfoRequest(BaseRequest):
+class UserInfoRequest(BaseWbiRequest):
     mid: int  # 用户UID
 
 
@@ -127,7 +131,7 @@ class UserBestVideoRequest(BaseRequest):
     vmid: int
 
 
-class UserVideoRequest(PaginatedRequest):
+class UserVideoRequest(BaseWbiRequest, PaginatedRequest):
     mid: int
     order: str = None
     tid: int = None

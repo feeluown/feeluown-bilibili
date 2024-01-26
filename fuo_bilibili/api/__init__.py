@@ -4,7 +4,7 @@ from http.cookiejar import MozillaCookieJar, CookieJar
 from typing import Type, Optional, Union, List
 
 import requests.cookies
-from cachetools import TTLCache, cached
+from cachetools import TTLCache
 from .compat import BaseModel
 
 from fuo_bilibili.api.audio import AudioMixin
@@ -14,15 +14,12 @@ from fuo_bilibili.api.live import LiveMixin
 from fuo_bilibili.api.login import LoginMixin
 from fuo_bilibili.api.media import MediaMixin
 from fuo_bilibili.api.playlist import PlaylistMixin
-from fuo_bilibili.api.schema.enums import VideoQualityNum, SearchType
-from fuo_bilibili.api.schema.requests import BaseRequest, VideoInfoRequest, PlayUrlRequest, SearchRequest, \
-    FavoriteListRequest, PaginatedRequest, AudioFavoriteSongsRequest, AnotherPaginatedRequest, LivePlayUrlRequest, \
-    MediaFavlistRequest, HistoryAddLaterVideosRequest, BaseCsrfRequest, HistoryDelLaterVideosRequest, \
-    UserFollowingRequest, WeeklyDetailRequest
-from fuo_bilibili.api.schema.responses import BaseResponse
+from fuo_bilibili.api.schema.requests import *  # noqa
+from fuo_bilibili.api.schema.responses import *  # noqa
 from fuo_bilibili.api.user import UserMixin
 from fuo_bilibili.api.video import VideoMixin
-from fuo_bilibili.const import PLUGIN_API_COOKIEJAR_FILE, DANMAKU_DIRECTORY
+from fuo_bilibili.const import PLUGIN_API_COOKIEJAR_FILE
+from .wbi import encWbi
 
 CACHE = TTLCache(50, ttl=timedelta(minutes=10).total_seconds())
 
@@ -44,6 +41,7 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
         # UPDATE(2023-xx-xx): The header cause some API failing: self.nav_info
         self._session.headers.update(self._headers)
         self._session.cookies = self._cookie
+        self._wbi: Optional[NavInfoResponse.NavInfoResponseData.Wbi] = None
 
     @staticmethod
     def cookie_check():
@@ -73,6 +71,9 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
     def _dump_cookie_to_file(self):
         self._cookie.save()
 
+    def set_wbi(self, wbi: NavInfoResponse.NavInfoResponseData.Wbi):
+        self._wbi = wbi
+
     @staticmethod
     def clear_cache_by_url(urls: List[str]):
         for key in CACHE.keys():
@@ -95,8 +96,18 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
         else:
             if isinstance(param, BaseCsrfRequest):
                 param.csrf = self._get_csrf()
+                js = json.loads(param.json(exclude_none=True))
+            elif isinstance(param, BaseWbiRequest):
+                if self._wbi is None:
+                    raise RuntimeError('wbi info is empty (not logged in)')
+                img_key = self._wbi.img_url.rsplit('/', 1)[1].split('.')[0]
+                sub_key = self._wbi.sub_url.rsplit('/', 1)[1].split('.')[0]
+                js = json.loads(param.json(exclude_none=True))
+                js = encWbi(js, img_key, sub_key)
+            else:
+                js = json.loads(param.json(exclude_none=True))
             r = self._session.get(url, timeout=self.TIMEOUT,
-                                  params=json.loads(param.json(exclude_none=True)),
+                                  params=js,
                                   **kwargs)
         if r.status_code != 200:
             print(r.text)
