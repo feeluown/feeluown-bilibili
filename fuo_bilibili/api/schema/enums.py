@@ -17,6 +17,7 @@ class SearchType(Enum):
     TOPIC = 'topic'  # 话题
     BILI_USER = 'bili_user'  # 用户
     PHOTO = 'photo'  # 相册
+    KETANG = 'ketang'  # 课堂
 
 
 class MediaType(Enum):

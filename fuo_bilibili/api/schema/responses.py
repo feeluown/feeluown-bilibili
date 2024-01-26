@@ -78,6 +78,10 @@ class Rights(BaseModel):
     free_watch: bool = None
 
 
+class SearchResultKetang(BaseModel):
+    type: SearchType = SearchType.KETANG
+
+
 class SearchResultUser(BaseModel):
     type: SearchType = SearchType.BILI_USER
     mid: int
@@ -262,7 +266,8 @@ class SearchResponse(BaseResponse):
         egg_hit: int
         pageinfo: dict = None
         result: Union[List[Union[SearchResultVideo, SearchResultUser,
-                                 SearchResultLiveRoom, SearchResultMedia]], dict] = None
+                                 SearchResultLiveRoom, SearchResultMedia,
+                                 SearchResultKetang]], dict] = None
         show_column: int
 
     data: SearchResponseData = None
