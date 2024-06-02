@@ -9,6 +9,7 @@ DANMAKU_DIRECTORY = PLUGIN_DATA_DIRECTORY / 'subtitles'
 
 # Cookiejar file
 PLUGIN_API_COOKIEJAR_FILE = PLUGIN_DATA_DIRECTORY / 'bilibili_api.cookie'
+PLUGIN_API_COOKIEDICT_FILE = PLUGIN_DATA_DIRECTORY / 'bilibili_api_cookie.json'
 
 # Ensure directories
 PLUGIN_DATA_DIRECTORY.mkdir(parents=True, exist_ok=True)

@@ -130,17 +130,8 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
     def request_key(self) -> RequestLoginKeyResponse:
         return self._api.request_login_key()
 
-    def cookie_check(self):
-        return self._api.cookie_check()
-
-    def auth(self, _):
-        self._api.load_cookies()
-        try:
-            self._user = self.user_info()
-        except RuntimeError as re:
-            self._api.remove_cookie()
-            print(str(re) + ' 请重新登录')
-        return self._user
+    def auth(self, user):
+        self._user = user
 
     def has_current_user(self) -> bool:
         return self._user is not None
@@ -159,6 +150,7 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
             name=data.uname,
             avatar_url=data.face
         )
+        print(user.avatar_url)
         return user
 
     def cookiejar_login(self, jar):

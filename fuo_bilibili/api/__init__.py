@@ -35,41 +35,21 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
                           ' AppleWebKit/537.36 (KHTML, like Gecko)'
                           ' Chrome/33.0.1750.152 Safari/537.36'
         }
-        self._cookie = MozillaCookieJar(PLUGIN_API_COOKIEJAR_FILE)
         self._session = requests.Session()
         # UPDATE(2024-01-11): To make self.nav_info work, the header needs to be added
         # UPDATE(2023-xx-xx): The header cause some API failing: self.nav_info
         self._session.headers.update(self._headers)
-        self._session.cookies = self._cookie
         self._wbi: Optional[NavInfoResponse.NavInfoResponseData.Wbi] = None
-
-    @staticmethod
-    def cookie_check():
-        if not PLUGIN_API_COOKIEJAR_FILE.exists():
-            return False
-        return True
 
     def get_session(self):
         return self._session
 
-    def get_cookies(self):
+    def get_cookiejar(self):
         return self._session.cookies
 
-    @staticmethod
-    def remove_cookie():
-        PLUGIN_API_COOKIEJAR_FILE.unlink(missing_ok=True)
-
-    def from_cookiejar(self, jar: CookieJar):
-        for cookie in jar:
-            if 'bilibili.com' in cookie.domain:
-                self._cookie.set_cookie(cookie)
-        self._dump_cookie_to_file()
-
-    def load_cookies(self):
-        self._cookie.load()
-
-    def _dump_cookie_to_file(self):
-        self._cookie.save()
+    def from_cookiedict(self, cookies):
+        cookiejar = requests.cookies.cookiejar_from_dict(cookies)
+        self._session.cookies = cookiejar
 
     def set_wbi(self, wbi: NavInfoResponse.NavInfoResponseData.Wbi):
         self._wbi = wbi

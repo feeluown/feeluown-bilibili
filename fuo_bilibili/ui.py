@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import json
 from pathlib import Path
 from typing import Optional
 
@@ -9,42 +10,53 @@ from PyQt5.QtWidgets import QDialog, QLineEdit, QVBoxLayout, QPushButton, QLabel
     QAction, QInputDialog, QWidget
 from feeluown.app.gui_app import GuiApp
 from feeluown.gui import ProviderUiManager
+from feeluown.gui.widgets.login import CookiesLoginDialog, InvalidCookies
 from feeluown.library import UserModel
+from feeluown.utils.aio import run_fn
 
 from fuo_bilibili import __identifier__, __alias__, BilibiliProvider
 from fuo_bilibili.api.schema.requests import PasswordLoginRequest, SendSmsCodeRequest, SmsCodeLoginRequest
 from fuo_bilibili.api.schema.responses import RequestLoginKeyResponse
 from fuo_bilibili.geetest.server import GeetestAuthServer
 from fuo_bilibili.util import rsa_encrypt, get_random_available_port
+from fuo_bilibili.const import PLUGIN_API_COOKIEDICT_FILE
 
 logger = logging.getLogger(__name__)
 
 
-class KeyringLoginWidget(QWidget):
-    finished = pyqtSignal()
+class LoginDialog(CookiesLoginDialog):
 
     def __init__(self, provider: BilibiliProvider, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._provider = provider
-        self._chrome_btn = QPushButton('从 Chrome 中读取 Cookie')
+        self.provider = provider
 
-        self._layout = QVBoxLayout(self)
-        self._layout.addWidget(self._chrome_btn)
-        self._chrome_btn.clicked.connect(self._get_cookies_from_chrome)
+    def setup_user(self, user):
+        self.provider.auth(user)
 
-    def _get_cookies_from_chrome(self):
-        from feeluown.utils.yt_dlp_cookies import load_cookies
-        jar = load_cookies(None, ['chrome'], None)
-        self._provider.cookiejar_login(jar)
-        self.finished.emit()
+    async def user_from_cookies(self, cookies):
+        if not cookies:  # is None or empty
+            raise InvalidCookies('empty cookies')
 
-    @classmethod
-    def is_supported(cls):
+        self.provider._api.from_cookiedict(cookies)
         try:
-            from feeluown.utils.yt_dlp_cookies import load_cookies  # noqa
-        except ImportError:
-            return False
-        return True
+            user = await run_fn(self.provider.user_info)
+        except RuntimeError as e:
+            raise InvalidCookies(f'get user with cookies failed: {e}')
+        return user
+
+    def load_user_cookies(self):
+        if PLUGIN_API_COOKIEDICT_FILE.exists():
+            with PLUGIN_API_COOKIEDICT_FILE.open('r', encoding='utf-8') as f:
+                try:
+                    cookie_dict = json.load(f)
+                except Exception:
+                    logger.warning('parse cookies(json) failed')
+                    return None
+            return cookie_dict
+
+    def dump_user_cookies(self, _, cookies):
+        with PLUGIN_API_COOKIEDICT_FILE.open('w', encoding='utf-8') as f:
+            json.dump(cookies, f, indent=2)
 
 
 class BAuthDialog(QDialog):
@@ -197,16 +209,6 @@ class BLoginDialog(QDialog):
         self._pw_tab.hide()
         # self._tab.addTab(self._sms_tab, '验证码登录')
         # self._tab.addTab(self._pw_tab, '密码登录')
-        if KeyringLoginWidget.is_supported():
-            # keyring 登录
-            self._keyring_tab = KeyringLoginWidget(self._provider, parent=self._tab)
-            self._tab.addTab(self._keyring_tab, 'Keyring 登录')
-            self._keyring_tab.finished.connect(self._finish_keyring_login)
-        else:
-            self._tab.addTab(
-                QLabel('登录功能从 2023-08-01 开始，已经无法使用', self),
-                '提示',
-            )
 
         # auth back signal
         # noinspection PyUnresolvedReferences
@@ -303,9 +305,11 @@ class BUiManager:
             desc='点击登录',
             colorful_svg=(Path(__file__).parent / 'assets' / 'icon.svg').as_posix()
         )
-        self._pvd_item.clicked.connect(self._login_or_get_user)
+        self._pvd_item.clicked.connect(self.login_or_go_home)
         self._pvd_uimgr.add_item(self._pvd_item)
-        self.login_dialog = BLoginDialog(None, self._provider)
+
+        self.login_dialog = None
+
         # 新建收藏夹
         pl_header = self._app.ui.left_panel.playlists_header
         pl_header.setContextMenuPolicy(Qt.ActionsContextMenu)
@@ -314,8 +318,6 @@ class BUiManager:
         # noinspection PyUnresolvedReferences
         new_pl_action.triggered.connect(self.new_playlist)
         self._initial_pages()
-
-        self.login_dialog.login_succeed.connect(self._login_or_get_user)
 
     def new_playlist(self):
         name, o1 = QInputDialog.getText(self._app.ui.left_panel.playlists_header, '新建收藏夹', '收藏夹标题')
@@ -370,14 +372,20 @@ class BUiManager:
         self._app.pl_uimgr.add(audio_fav_list)
         self._app.pl_uimgr.add(audio_coll_list, is_fav=True)
 
-    def _login(self):
-        self._user = self._provider.auth(None)
-        if self._user is not None:
-            self._pvd_item.text = f'{__alias__}已登录：{self._user.name} UID:{self._user.identifier}'
+    def after_login_succeed(self):
+        user = self._provider.get_current_user()
+        assert user is not None
+        self._user = user
+        self._pvd_item.text = f'{__alias__}已登录：{self._user.name} UID:{self._user.identifier}'
         asyncio.ensure_future(self.load_user_content())
 
-    def _login_or_get_user(self):
-        if self._provider.cookie_check():
-            self._login()
-            return
-        self.login_dialog.show()
+    def login_or_go_home(self):
+        if self._provider._user is None:
+            # keyring 登录
+            self.login_dialog = LoginDialog(
+                self._provider, 'https://bilibili.com', ['SESSDATA'])
+            self.login_dialog.login_succeed.connect(self.after_login_succeed)
+            self.login_dialog.autologin()
+            self.login_dialog.show()
+        else:
+            self.after_login_succeed()

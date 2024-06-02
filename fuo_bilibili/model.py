@@ -23,6 +23,12 @@ def get_text_from_html(html):
     return BeautifulSoup(html, features="html.parser").get_text()
 
 
+def wrap_pic(pic):
+    if pic.startswith('//'):
+        return f'http:{pic}'
+    return pic
+
+
 class BBriefAlbumModel(BriefAlbumModel):
     cover: str = ''
 
@@ -112,7 +118,7 @@ class BSongModel(SongModel):
                 title=page.part,
                 artists=[],
                 duration=page.duration.total_seconds() * 1000,
-                pic_url=result.pic,
+                pic_url=wrap_pic(result.pic),
             )
             children.append(song)
 
@@ -134,7 +140,7 @@ class BSongModel(SongModel):
             )],
             duration=result.duration.total_seconds() * 1000,
             lyric=lrc or '',
-            pic_url=result.pic,
+            pic_url=wrap_pic(result.pic),
             children=children,
         )
 
@@ -495,7 +501,7 @@ class BVideoModel(VideoModel):
                 identifier=result.mid
             )],
             duration=result.duration.total_seconds(),
-            cover=result.pic,
+            cover=wrap_pic(result.pic),
             play_count=result.play,
             released=result.pubdate.strftime('%Y-%m-%d'),
         )
