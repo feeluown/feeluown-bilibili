@@ -150,7 +150,6 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
             name=data.uname,
             avatar_url=data.face
         )
-        print(user.avatar_url)
         return user
 
     def cookiejar_login(self, jar):
@@ -343,7 +342,6 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
         if audios is None or len(audios) == 0:
             return None
         # select video
-        print(response.data.dash.video)
         max_quality_code = VideoQualityNum.get_max_from_quality(quality)
         select_quality = max(filter(lambda c: c.value <= max_quality_code, self._video_quality_codes[video.identifier]),
                              key=lambda c: c.value)
