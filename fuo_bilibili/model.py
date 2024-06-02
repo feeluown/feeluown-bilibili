@@ -19,6 +19,10 @@ from fuo_bilibili.util import format_timedelta_to_hms
 PROVIDER_ID = __identifier__
 
 
+def get_text_from_html(html):
+    return BeautifulSoup(html, features="html.parser").get_text()
+
+
 class BBriefAlbumModel(BriefAlbumModel):
     cover: str = ''
 
@@ -241,6 +245,7 @@ class BSearchModel:
         for result in results:
             if isinstance(result, SearchResultVideo):
                 songs.append(BSongModel.create_model(result))
+                videos.append(BVideoModel.create_video_model(result))
             elif isinstance(result, SearchResultUser):
                 artists.append(cls.search_user_model(result))
             elif isinstance(result, SearchResultLiveRoom):
@@ -477,3 +482,21 @@ class BVideoModel(VideoModel):
             duration=0,
             cover=live.cover,
         )
+
+    @classmethod
+    def create_video_model(cls, result: SearchResultVideo) -> 'VideoModel':
+        return VideoModel(
+            source=__identifier__,
+            identifier=result.bvid,
+            title=get_text_from_html(result.title),
+            artists=[BriefArtistModel(
+                source=__identifier__,
+                name=result.author,
+                identifier=result.mid
+            )],
+            duration=result.duration.total_seconds(),
+            cover=result.pic,
+            play_count=result.play,
+            released=result.pubdate.strftime('%Y-%m-%d'),
+        )
+

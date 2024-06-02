@@ -32,7 +32,8 @@ from fuo_bilibili.model import BSearchModel, BSongModel, BPlaylistModel, BArtist
 from fuo_bilibili.util import json_to_lrc_text
 
 SEARCH_TYPE_MAP = {
-    FuoSearchType.vi: BilibiliSearchType.LIVE_ROOM,  # 对应直播间
+    # 对应直播间
+    FuoSearchType.vi: BilibiliSearchType.LIVE_ROOM,
     FuoSearchType.ar: BilibiliSearchType.BILI_USER,  # 对应B站用户
     FuoSearchType.so: BilibiliSearchType.VIDEO,  # 对应投稿视频
     FuoSearchType.al: (BilibiliSearchType.MEDIA, BilibiliSearchType.BANGUMI),  # 对应番剧电影
@@ -100,7 +101,7 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
             ModelType.album: (Pf.model_v2 | Pf.get),
         }
 
-    def __init__(self):
+    def __init__(self, enable_live_room_as_video=True):
         super(BilibiliProvider, self).__init__()
         self._api = BilibiliApi()
         self._user = None
@@ -108,8 +109,13 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
         self._video_cids = dict()
         self._video_avids = dict()
 
+        self.enable_live_room_as_video = enable_live_room_as_video
+
     def _format_search_request(self, keyword, type_) -> Union[SearchRequest, Tuple[SearchRequest]]:
-        btype = SEARCH_TYPE_MAP.get(type_)
+        if self.enable_live_room_as_video is False and type_ == FuoSearchType.vi:
+            btype = BilibiliSearchType.VIDEO
+        else:
+            btype = SEARCH_TYPE_MAP.get(type_)
         if btype is None:
             raise NotImplementedError
         if isinstance(btype, Tuple):

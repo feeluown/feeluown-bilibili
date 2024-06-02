@@ -17,9 +17,17 @@ provider = BilibiliProvider()
 ui_mgr: Optional[BUiManager] = None
 
 
+def init_config(config):
+    config.deffield('ENABLE_LIVE_ROOM_AS_VIDEO',
+                    type_=bool,
+                    default=True,
+                    desc='treat live room as video')
+
+
 # noinspection PyProtectedMember
 def enable(app: Union[App, GuiApp]):
     global ui_mgr
+    provider.enable_live_room_as_video = app.config.bilibili.ENABLE_LIVE_ROOM_AS_VIDEO
     app.library.register(provider)
     if app.mode & App.GuiMode:
         ui_mgr = BUiManager(app, provider)
