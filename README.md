@@ -11,7 +11,7 @@
 You must have [FeelUOwn](https://github.com/feeluown/FeelUOwn) first
 
 - Python >= 3.10
-- FeelUOwn >= 3.8.14
+- FeelUOwn >= 4.1.5
 
 ## Installation
 
