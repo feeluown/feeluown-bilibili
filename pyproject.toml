@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "feeluown-bilibili"
-version = "0.3.1"
+version = "0.4.1"
 description = "Bilibili provider for FeelUOwn player."
 homepage = "https://github.com/BruceZhang1993/feeluown-bilibili"
 authors = ["Bruce Zhang <zttt183525594@gmail.com>"]
