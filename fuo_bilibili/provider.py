@@ -430,6 +430,18 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
             name=user.uname,
         ) for user in resp.data.list]
 
+    def current_user_list_playlists(self):
+        p1 = self.special_playlists()
+        p2 = self.user_playlists(self.get_current_user().identifier)
+        p3 = self.audio_favorite_playlists()
+        p4 = self.audio_collected_playlists()
+        return p1 + p2 + p3 + p4
+
+    def current_user_fav_create_playlists_rd(self):
+        p1 = self.fav_playlists(self.get_current_user().identifier)
+        p2 = self.audio_collected_playlists()
+        return p1 + p2
+
     def audio_favorite_playlists(self) -> List[BriefPlaylistModel]:
         resp = self._api.audio_favorite_list(PaginatedRequest(ps=100, pn=1))
         return BPlaylistModel.create_audio_model_list(resp)
@@ -621,6 +633,10 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
                 page += 1
 
         return SequentialReader(g(), total)
+
+    def rec_a_collection_of_videos(self):
+        resp = self._api.video_most_popular()
+        return [BVideoModel.create_popular_video_model(v) for v in resp.data.list]
 
     @property
     def identifier(self):

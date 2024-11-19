@@ -11,11 +11,9 @@ __identifier__ = 'bilibili'
 from feeluown.app.gui_app import GuiApp
 
 from fuo_bilibili.provider import BilibiliProvider
-from fuo_bilibili.ui import BUiManager
+from fuo_bilibili.ui import BProviderUi
 
 provider = BilibiliProvider()
-ui_mgr: Optional[BUiManager] = None
-
 
 def init_config(config):
     config.deffield('ENABLE_LIVE_ROOM_AS_VIDEO',
@@ -30,7 +28,8 @@ def enable(app: Union[App, GuiApp]):
     provider.enable_live_room_as_video = app.config.bilibili.ENABLE_LIVE_ROOM_AS_VIDEO
     app.library.register(provider)
     if app.mode & App.GuiMode:
-        ui_mgr = BUiManager(app, provider)
+        ui_mgr = BProviderUi(app, provider)
+        app.pvd_ui_mgr.register(ui_mgr)
 
 
 def disable(app: App):
@@ -39,3 +38,4 @@ def disable(app: App):
         provider.close()
         # noinspection PyUnresolvedReferences
         app.providers.remove(provider.identifier)
+        app.pvd_ui_mgr.remove(provider.identifier)

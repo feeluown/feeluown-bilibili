@@ -10,9 +10,11 @@ from PyQt5.QtWidgets import QDialog, QLineEdit, QVBoxLayout, QPushButton, QLabel
     QAction, QInputDialog, QWidget
 from feeluown.app.gui_app import GuiApp
 from feeluown.gui import ProviderUiManager
+from feeluown.gui.provider_ui import AbstractProviderUi, NavBtn
 from feeluown.gui.widgets.login import CookiesLoginDialog, InvalidCookies
 from feeluown.library import UserModel
 from feeluown.utils.aio import run_fn
+from feeluown.utils.dispatch import Signal
 
 from fuo_bilibili import __identifier__, __alias__, BilibiliProvider
 from fuo_bilibili.api.schema.requests import PasswordLoginRequest, SendSmsCodeRequest, SmsCodeLoginRequest
@@ -292,34 +294,58 @@ class BLoginDialog(QDialog):
         return rsa_encrypt(salted_pw, key_data.key)
 
 
-class BUiManager:
-    def __init__(self, app: GuiApp, provider: BilibiliProvider):
-        self._user: Optional[UserModel] = None
-        self._provider = provider
+class BProviderUi(AbstractProviderUi):
+    def __init__(self, app: 'GuiApp', provider: BilibiliProvider):
         self._app = app
-        self._pvd_uimgr: ProviderUiManager = app.pvd_uimgr
-        self._pvd_item = self._pvd_uimgr.create_item(
-            name=__identifier__,
-            text=__alias__,
-            symbol='📺',
-            desc='点击登录',
-            colorful_svg=(Path(__file__).parent / 'assets' / 'icon.svg').as_posix()
-        )
-        self._pvd_item.clicked.connect(self.login_or_go_home)
-        self._pvd_uimgr.add_item(self._pvd_item)
-
+        self._provider = provider
+        self._login_event = Signal()
         self.login_dialog = None
 
-        # 新建收藏夹
-        pl_header = self._app.ui.left_panel.playlists_header
-        pl_header.setContextMenuPolicy(Qt.ActionsContextMenu)
-        new_pl_action = QAction('新建收藏夹', pl_header)
-        pl_header.addAction(new_pl_action)
-        # noinspection PyUnresolvedReferences
-        new_pl_action.triggered.connect(self.new_playlist)
-        self._initial_pages()
+    @property
+    def provider(self):
+        return self._provider
 
-    def new_playlist(self):
+    @property
+    def login_event(self):
+        return self._login_event
+
+    def login_or_go_home(self):
+        if not self._provider.has_current_user():
+            # keyring 登录
+            self.login_dialog = LoginDialog(
+                self._provider, 'https://bilibili.com', ['SESSDATA'])
+            self.login_dialog.login_succeed.connect(self.on_login_succeed)
+            self.login_dialog.autologin()
+            self.login_dialog.show()
+        else:
+            logger.info('already logged in')
+            self.login_event.emit(self, 2)
+
+    def get_colorful_svg(self) -> str:
+        return (Path(__file__).parent / 'assets' / 'icon.svg').as_posix()
+
+    def register_pages(self, route):
+        from fuo_bilibili.page_home import render as home_render
+        from fuo_bilibili.page_ranking import render as ranking_render
+
+        route('/providers/bilibili/home')(home_render)
+        route('/providers/bilibili/ranking')(ranking_render)
+
+    def list_nav_btns(self):
+        return [
+            NavBtn(
+                icon='📺',
+                text='我的首页',
+                cb=lambda: self._app.browser.goto(page='/providers/bilibili/home')
+            ),
+            NavBtn(
+                icon='🔥',
+                text='全站热门',
+                cb=lambda: self._app.browser.goto(page='/providers/bilibili/ranking')
+            ),
+        ]
+
+    def create_playlist(self):
         name, o1 = QInputDialog.getText(self._app.ui.left_panel.playlists_header, '新建收藏夹', '收藏夹标题')
         if not o1:
             return
@@ -334,58 +360,6 @@ class BUiManager:
         except Exception as e:
             QMessageBox.warning(self._app.ui.left_panel.playlists_header, '新建收藏夹失败', str(e))
 
-    def _initial_pages(self):
-        from fuo_bilibili.page_home import render as home_render
-        from fuo_bilibili.page_ranking import render as ranking_render
-        self._app.browser.route('/providers/bilibili/home')(home_render)
-        self._app.browser.route('/providers/bilibili/ranking')(ranking_render)
-
-    async def load_user_content(self):
-        left = self._app.ui.left_panel
-        left.playlists_con.show()
-        left.my_music_con.show()
-        # 音乐
-        mymusic_home_item = self._app.mymusic_uimgr.create_item('📺 我的首页')
-        mymusic_home_item.clicked.connect(
-            lambda: self._app.browser.goto(page='/providers/bilibili/home'),
-            weak=False)
-        mymusic_ranking_item = self._app.mymusic_uimgr.create_item('🔥 全站热门')
-        mymusic_ranking_item.clicked.connect(
-            lambda: self._app.browser.goto(page='/providers/bilibili/ranking'),
-            weak=False
-        )
-        self._app.mymusic_uimgr.clear()
-        self._app.mymusic_uimgr.add_item(mymusic_home_item)
-        self._app.mymusic_uimgr.add_item(mymusic_ranking_item)
-        # 歌单列表
-        self._app.pl_uimgr.clear()
-        # 视频区
-        special_playlists = self._provider.special_playlists()
-        playlists = self._provider.user_playlists(self._user.identifier)
-        fav_playlists = self._provider.fav_playlists(self._user.identifier)
-        self._app.pl_uimgr.add(special_playlists)
-        self._app.pl_uimgr.add(playlists)
-        self._app.pl_uimgr.add(fav_playlists, is_fav=True)
-        # 音频区
-        audio_fav_list = self._provider.audio_favorite_playlists()
-        audio_coll_list = self._provider.audio_collected_playlists()
-        self._app.pl_uimgr.add(audio_fav_list)
-        self._app.pl_uimgr.add(audio_coll_list, is_fav=True)
-
-    def after_login_succeed(self):
-        user = self._provider.get_current_user()
-        assert user is not None
-        self._user = user
-        self._pvd_item.text = f'{__alias__}已登录：{self._user.name} UID:{self._user.identifier}'
-        asyncio.ensure_future(self.load_user_content())
-
-    def login_or_go_home(self):
-        if self._provider._user is None:
-            # keyring 登录
-            self.login_dialog = LoginDialog(
-                self._provider, 'https://bilibili.com', ['SESSDATA'])
-            self.login_dialog.login_succeed.connect(self.after_login_succeed)
-            self.login_dialog.autologin()
-            self.login_dialog.show()
-        else:
-            self.after_login_succeed()
+    def on_login_succeed(self):
+        del self.login_dialog
+        self.login_event.emit(self, 1)

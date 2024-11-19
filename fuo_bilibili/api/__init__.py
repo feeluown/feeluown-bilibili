@@ -64,7 +64,7 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
                 CACHE.pop(key)
 
     def _get_csrf(self):
-        for cookie in self._cookie:
+        for cookie in self.get_cookiejar():
             if cookie.name == 'bili_jct':
                 return cookie.value
         raise RuntimeError('bili_jct not found')
