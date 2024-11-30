@@ -222,7 +222,7 @@ class BSearchModel:
         return BVideoModel(
             source=PROVIDER_ID,
             identifier=f'live_{live.roomid}',
-            title=live.title,
+            title=get_text_from_html(live.title),
             artists=[
                 BriefArtistModel(
                     source=PROVIDER_ID,
@@ -478,7 +478,7 @@ class BVideoModel(VideoModel):
         return cls(
             source=PROVIDER_ID,
             identifier=f'live_{live.roomid}',
-            title=live.title,
+            title=get_text_from_html(live.title),
             artists=[
                 BriefArtistModel(
                     source=PROVIDER_ID,
