@@ -635,8 +635,10 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
         return SequentialReader(g(), total)
 
     def rec_a_collection_of_videos(self):
-        resp = self._api.video_most_popular()
-        return [BVideoModel.create_popular_video_model(v) for v in resp.data.list]
+        if self.has_current_user():
+            resp = self._api.home_recommend_videos(HomeRecommendVideosRequest(ps=12))
+            return [BVideoModel.create_recommend_video_model(v) for v in resp.data.item]
+        return []
 
     @property
     def identifier(self):

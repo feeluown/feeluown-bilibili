@@ -13,7 +13,8 @@ from fuo_bilibili.api.schema.responses import SearchResponse, SearchResultVideo,
     FavoriteSeasonResourceResponse, HistoryLaterVideoResponse, HomeDynamicVideoResponse, UserInfoResponse, \
     UserBestVideoResponse, UserVideoResponse, AudioFavoriteSongsResponse, AudioFavoriteListResponse, AudioPlaylist, \
     AudioPlaylistSong, VideoHotCommentsResponse, SearchResultUser, LiveFeedListResponse, SearchResultLiveRoom, \
-    SearchResultMedia, MediaGetListResponse, VideoWeeklyListResponse, VideoMostPopularResponse
+    SearchResultMedia, MediaGetListResponse, VideoWeeklyListResponse, VideoMostPopularResponse, \
+    HomeRecommendVideosResponse
 from fuo_bilibili.util import format_timedelta_to_hms
 
 PROVIDER_ID = __identifier__
@@ -488,6 +489,23 @@ class BVideoModel(VideoModel):
             duration=0,
             cover=live.cover,
         )
+
+    @classmethod
+    def create_recommend_video_model(cls, result: HomeRecommendVideosResponse.HomeRecommendVideosResponseData.Video):
+        return VideoModel(
+            source=PROVIDER_ID,
+            identifier=result.bvid,
+            title=get_text_from_html(result.title),
+            artists=[BriefArtistModel(
+                source=PROVIDER_ID,
+                identifier=result.owner.mid,
+                name=result.owner.name
+            )],
+            duration=result.duration.total_seconds(),
+            cover=wrap_pic(result.pic),
+            play_count=result.stat.view,
+        )
+
 
     @classmethod
     def create_popular_video_model(cls, result: VideoMostPopularResponse.VideoMostPopularResponseData.PopularVideo):
