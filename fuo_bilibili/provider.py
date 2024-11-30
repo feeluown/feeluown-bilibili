@@ -8,7 +8,8 @@ from feeluown.excs import NoUserLoggedIn, MediaNotFound
 from feeluown.library import AbstractProvider, ProviderV2, ProviderFlags as Pf, UserModel, VideoModel, \
     BriefPlaylistModel, BriefSongModel, LyricModel, SupportsSongSimilar, BriefSongProtocol, SupportsSongHotComments, \
     SupportsAlbumGet, BriefAlbumModel, SupportsPlaylistAddSong, SupportsPlaylistRemoveSong, BriefUserModel, \
-    BriefArtistModel, SearchType as FuoSearchType, ModelType, SimpleSearchResult, ModelNotFound
+    BriefArtistModel, SearchType as FuoSearchType, ModelType, SimpleSearchResult, ModelNotFound, Collection, \
+    CollectionType
 from feeluown.media import Quality, Media, MediaType, VideoAudioManifest
 from feeluown.utils.reader import SequentialReader
 
@@ -637,8 +638,14 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
     def rec_a_collection_of_videos(self):
         if self.has_current_user():
             resp = self._api.home_recommend_videos(HomeRecommendVideosRequest(ps=12))
-            return [BVideoModel.create_recommend_video_model(v) for v in resp.data.item]
-        return []
+            videos = [BVideoModel.create_recommend_video_model(v) for v in resp.data.item]
+        else:
+            videos = []
+        return Collection(
+            name='推荐视频',
+            type_=CollectionType.only_videos,
+            models=videos,
+        )
 
     @property
     def identifier(self):
