@@ -11,14 +11,14 @@ package_data = \
 {'': ['*'], 'fuo_bilibili': ['assets/*']}
 
 install_requires = \
-['beautifulsoup4', 'cachetools', 'feeluown>=4.1.5', 'pycryptodome']
+['beautifulsoup4', 'cachetools', 'feeluown>=4.1.8', 'pycryptodome']
 
 entry_points = \
 {'fuo.plugins_v1': ['bilibili = fuo_bilibili']}
 
 setup_kwargs = {
     'name': 'feeluown-bilibili',
-    'version': '0.4.1',
+    'version': '0.5.0',
     'description': 'Bilibili provider for FeelUOwn player.',
     'author': 'Bruce Zhang',
     'url': 'https://github.com/feeluown/feeluown-bilibili',
