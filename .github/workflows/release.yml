@@ -15,7 +15,9 @@ jobs:
         python-version: 3.11
     - name: Build
       run: >-
+        pip install setuptools build wheel --upgrade --break-system-packages
         python setup.py sdist
+        python setup.py bdist_wheel
     - name: Publish
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
