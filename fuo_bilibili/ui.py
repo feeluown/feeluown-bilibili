@@ -22,6 +22,7 @@ from fuo_bilibili.api.schema.responses import RequestLoginKeyResponse
 from fuo_bilibili.geetest.server import GeetestAuthServer
 from fuo_bilibili.util import rsa_encrypt, get_random_available_port
 from fuo_bilibili.const import PLUGIN_API_COOKIEDICT_FILE
+from fuo_bilibili.login import load_user_cookies, dump_user_cookies
 
 logger = logging.getLogger(__name__)
 
@@ -47,18 +48,10 @@ class LoginDialog(CookiesLoginDialog):
         return user
 
     def load_user_cookies(self):
-        if PLUGIN_API_COOKIEDICT_FILE.exists():
-            with PLUGIN_API_COOKIEDICT_FILE.open('r', encoding='utf-8') as f:
-                try:
-                    cookie_dict = json.load(f)
-                except Exception:
-                    logger.warning('parse cookies(json) failed')
-                    return None
-            return cookie_dict
+        return load_user_cookies()
 
     def dump_user_cookies(self, _, cookies):
-        with PLUGIN_API_COOKIEDICT_FILE.open('w', encoding='utf-8') as f:
-            json.dump(cookies, f, indent=2)
+        return dump_user_cookies(cookies)
 
 
 class BAuthDialog(QDialog):

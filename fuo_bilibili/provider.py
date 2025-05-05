@@ -1,3 +1,4 @@
+import logging
 import math
 from inspect import signature
 from pathlib import Path
@@ -31,7 +32,9 @@ from fuo_bilibili.danmaku2ass import Danmaku2ASS
 from fuo_bilibili.model import BSearchModel, BSongModel, BPlaylistModel, BArtistModel, BCommentModel, BVideoModel, \
     BAlbumModel
 from fuo_bilibili.util import json_to_lrc_text
+from fuo_bilibili.login import load_user_cookies
 
+logger = logging.getLogger(__name__)
 SEARCH_TYPE_MAP = {
     # 对应直播间
     FuoSearchType.vi: BilibiliSearchType.LIVE_ROOM,
@@ -131,7 +134,24 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
     def request_key(self) -> RequestLoginKeyResponse:
         return self._api.request_login_key()
 
+    def auto_login(self):
+        logger.info("Try auto logging...")
+        cookiedict = load_user_cookies()
+        if cookiedict:
+            logger.info("Try fetch user info with cookies...")
+            self._api.from_cookiedict(cookiedict)
+            try:
+                user = self.user_info()
+            except RuntimeError as e:
+                logger.warning(f'Auto login failed: {e}')
+            else:
+                self.auth(user)
+                logger.info(f'Auto login success: {user.name}')
+        else:
+            logger.info('No cookies found')
+
     def auth(self, user):
+        self._api.enable_auto_save_cookie = bool(user)
         self._user = user
 
     def has_current_user(self) -> bool:

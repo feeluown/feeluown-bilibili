@@ -1,7 +1,9 @@
 import json
+import logging
 from datetime import timedelta
 from http.cookiejar import MozillaCookieJar, CookieJar
 from typing import Type, Optional, Union, List
+from threading import Lock
 
 import requests.cookies
 from cachetools import TTLCache
@@ -22,6 +24,7 @@ from fuo_bilibili.const import PLUGIN_API_COOKIEJAR_FILE
 from .wbi import encWbi
 
 CACHE = TTLCache(50, ttl=timedelta(minutes=10).total_seconds())
+logger = logging.getLogger(__name__)
 
 
 class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin, UserMixin, AudioMixin, LiveMixin,
@@ -40,6 +43,29 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
         # UPDATE(2023-xx-xx): The header cause some API failing: self.nav_info
         self._session.headers.update(self._headers)
         self._wbi: Optional[NavInfoResponse.NavInfoResponseData.Wbi] = None
+
+        # I guess the cookie is updated by the server periodically.
+        # Update the cookie file, so that it is still valid when the app is restarted.
+        # HACK: since feeluown has no mechanism to update the cookie file,
+        # we save cookie every N successful requests to keep it updated :)
+        self.enable_auto_save_cookie = True
+        self._auto_save_cookie_counter = 0
+        self._auto_save_cookie_lock = Lock()
+
+    def maybe_save_cookie(self):
+        from fuo_bilibili.login import dump_user_cookies
+
+        need_save = False
+        if self.enable_auto_save_cookie:
+            with self._auto_save_cookie_lock:
+                self._auto_save_cookie_counter += 1
+                if self._auto_save_cookie_counter >= 20:
+                    need_save = True
+                    self._auto_save_cookie_counter = 0
+        if need_save is True:
+            logger.info("auto save cookie")
+            cookiedict = dict(self.get_cookiejar())
+            dump_user_cookies(cookiedict)
 
     def get_session(self):
         return self._session
@@ -98,6 +124,7 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
         res: Union[BaseResponse, BaseModel] = clazz.parse_raw(response_str)
         if isinstance(res, BaseResponse) and res.code != 0:
             raise RuntimeError(f'code not ok: {res}, url:{url}, param:{param}')
+        self.maybe_save_cookie()
         return res
 
     def get(self, url: str, param: Optional[BaseRequest], clazz: Union[Type[BaseResponse], Type[BaseModel], None], **kwargs)\
@@ -128,6 +155,7 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
         res = clazz.parse_raw(response_str)
         if res.code != 0:
             raise RuntimeError(f'code not ok: {res.code} {res.message}')
+        self.maybe_save_cookie()
         return res
 
     def close(self):
