@@ -1,3 +1,4 @@
+import logging
 from typing import List, Union, Optional, Tuple
 
 from bs4 import BeautifulSoup
@@ -17,6 +18,7 @@ from fuo_bilibili.api.schema.responses import SearchResponse, SearchResultVideo,
     HomeRecommendVideosResponse
 from fuo_bilibili.util import format_timedelta_to_hms
 
+logger = logging.getLogger(__name__)
 PROVIDER_ID = __identifier__
 
 
@@ -240,6 +242,7 @@ class BSearchModel:
         artists = []
         videos = []
         albums = []
+        invalid_count = 0
         if isinstance(response, Tuple):
             results = []
             for r in response:
@@ -259,6 +262,11 @@ class BSearchModel:
                 videos.append(cls.search_live_model(result))
             elif isinstance(result, SearchResultMedia):
                 albums.append(cls.search_media_model(result))
+            else:
+                invalid_count += 1
+        if invalid_count != 0:
+            logger.warning(f'invalid object in search result: {invalid_count}')
+
         return SimpleSearchResult(
             q=request[0].keyword if isinstance(request, Tuple) else request.keyword,
             songs=songs or [],

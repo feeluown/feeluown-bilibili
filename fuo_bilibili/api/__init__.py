@@ -121,6 +121,7 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
         if clazz is None:
             return None
         response_str = r.text
+        logger.debug(f'api response body: {response_str}')
         res: Union[BaseResponse, BaseModel] = clazz.parse_raw(response_str)
         if isinstance(res, BaseResponse) and res.code != 0:
             raise RuntimeError(f'code not ok: {res}, url:{url}, param:{param}')

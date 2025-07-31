@@ -145,7 +145,6 @@ class SearchResultVideo(BaseModel):
     bvid: str  # bv号
     title: str  # 标题
     description: str  # 简介
-    arcrank: str
     pic: str  # 视频封面
     play: int  # 播放量
     video_review: int  # 弹幕量
@@ -160,7 +159,9 @@ class SearchResultVideo(BaseModel):
     view_type: str
     is_pay: bool
     is_union_video: bool
-    rank_score: int
+    # 从某个时间点开始，这两个字段没了
+    # arcrank: str
+    # rank_score: int
 
 
 class RequestCaptchaResponse(BaseResponse):
@@ -266,7 +267,8 @@ class SearchResponse(BaseResponse):
         numPages: int  # 总页数
         suggest_keyword: str
         rqt_type: str
-        cost_time: dict
+        # 从某个时间开始，服务端不返回这个字段了
+        # cost_time: dict
         exp_list: dict = None
         egg_hit: int
         pageinfo: dict = None
