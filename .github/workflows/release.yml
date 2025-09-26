@@ -10,7 +10,7 @@ jobs:
     steps:
     - uses: actions/checkout@master
     - name: Set up Python
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Build
@@ -19,7 +19,7 @@ jobs:
         python setup.py sdist
         python setup.py bdist_wheel
     - name: Publish
-      uses: pypa/gh-action-pypi-publish@release/v1
+      uses: pypa/gh-action-pypi-publish@master
       with:
         user: __token__
         password: ${{ secrets.PYPI_RELEASE_API_TOKEN}}
