@@ -18,7 +18,7 @@ entry_points = \
 
 setup_kwargs = {
     'name': 'feeluown-bilibili',
-    'version': '0.5.1',
+    'version': '0.5.2',
     'description': 'Bilibili provider for FeelUOwn player.',
     'author': 'Bruce Zhang',
     'url': 'https://github.com/feeluown/feeluown-bilibili',
