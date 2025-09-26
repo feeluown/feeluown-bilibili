@@ -3,8 +3,8 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 
-from PyQt5.QtCore import QThread
 from urllib3.util import parse_url
+from fuo_bilibili.qt_compat import QThread
 
 
 class GeetestHttpHandler(BaseHTTPRequestHandler):

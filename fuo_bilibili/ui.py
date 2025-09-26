@@ -4,10 +4,6 @@ import json
 from pathlib import Path
 from typing import Optional
 
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QCloseEvent
-from PyQt5.QtWidgets import QDialog, QLineEdit, QVBoxLayout, QPushButton, QLabel, QFrame, QTabWidget, QMessageBox, \
-    QAction, QInputDialog, QWidget
 from feeluown.app.gui_app import GuiApp
 from feeluown.gui import ProviderUiManager
 from feeluown.gui.provider_ui import AbstractProviderUi, NavBtn
@@ -20,6 +16,11 @@ from fuo_bilibili import __identifier__, __alias__, BilibiliProvider
 from fuo_bilibili.api.schema.requests import PasswordLoginRequest, SendSmsCodeRequest, SmsCodeLoginRequest
 from fuo_bilibili.api.schema.responses import RequestLoginKeyResponse
 from fuo_bilibili.geetest.server import GeetestAuthServer
+from fuo_bilibili.qt_compat import (
+    pyqtSignal, QCloseEvent, RichText, TextBrowserInteraction,
+    QDialog, QLineEdit, QVBoxLayout, QPushButton, QLabel, QFrame, QTabWidget, QMessageBox,
+    QAction, QInputDialog, QWidget
+)
 from fuo_bilibili.util import rsa_encrypt, get_random_available_port
 from fuo_bilibili.const import PLUGIN_API_COOKIEDICT_FILE
 from fuo_bilibili.login import load_user_cookies, dump_user_cookies
@@ -113,8 +114,8 @@ class BAuthDialog(QDialog):
     def _create_link_label(self, link: str, text: str) -> QLabel:
         auth_link = QLabel(self)
         auth_link.setText(f'<a href="{link}">{text}</a>')
-        auth_link.setTextFormat(Qt.RichText)
-        auth_link.setTextInteractionFlags(Qt.TextBrowserInteraction)
+        auth_link.setTextFormat(RichText)
+        auth_link.setTextInteractionFlags(TextBrowserInteraction)
         auth_link.setOpenExternalLinks(True)
         return auth_link
 

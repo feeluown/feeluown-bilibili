@@ -18,7 +18,7 @@ pycryptodome = "*"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
-PyQt5 = "*"
+PyQt6 = "*"
 fuo-dl = "^0.3"
 pre-commit = "*"
 poetry2setup = "*"
