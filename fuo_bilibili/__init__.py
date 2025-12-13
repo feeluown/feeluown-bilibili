@@ -8,8 +8,6 @@ __version__ = '0.0.1'
 __desc__ = __alias__
 __identifier__ = 'bilibili'
 
-from feeluown.app.gui_app import GuiApp
-
 from fuo_bilibili.provider import BilibiliProvider
 
 provider = BilibiliProvider()
@@ -22,8 +20,7 @@ def init_config(config):
 
 
 # noinspection PyProtectedMember
-def enable(app: Union[App, GuiApp]):
-    global ui_mgr
+def enable(app):
     provider.enable_live_room_as_video = app.config.bilibili.ENABLE_LIVE_ROOM_AS_VIDEO
     app.library.register(provider)
     if app.mode & App.GuiMode:
