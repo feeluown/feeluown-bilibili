@@ -147,6 +147,7 @@ class VideoCopyright(Enum):
     """
     ORIGIN = 1
     FORWARD = 2
+    UNKNOWN = 3
 
 
 class VideoState(Enum):
