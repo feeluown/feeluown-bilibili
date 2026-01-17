@@ -208,7 +208,7 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
         song = BSongModel.create_info_model(response)
         if page_num is not None:
             try:
-                song.children[int(page_num)-1]
+                song.children[int(page_num) - 1]
             except IndexError:
                 return None
         return song
@@ -276,7 +276,7 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
         if cid is None:
             info = self._api.video_get_info(VideoInfoRequest(bvid=bvid))
             if page_num >= 0:
-                cid = info.data.pages[page_num-1].cid
+                cid = info.data.pages[page_num - 1].cid
             else:
                 if len(info.data.pages) > 1 and page_num != -1:
                     raise MediaNotFound(reason=MediaNotFound.Reason.check_children)
@@ -400,6 +400,8 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
                 qualities.append(Quality.Audio.sq)
                 continue
             qualities.append(Quality.Audio.hq)
+        if response.data.dash.flac is not None and response.data.dash.flac['audio'] is not None:
+            qualities.append(Quality.Audio.shq)
         print(list(set(qualities)))
         return list(set(qualities))
 
@@ -418,6 +420,11 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
             cid=cid,
             fnval=VideoFnval.DASH
         ))
+        if Quality.Audio.shq == quality:
+            if response.data.dash.flac is not None and response.data.dash.flac['audio'] is not None:
+                return Media(response.data.dash.flac['audio']['base_url'], type_=MediaType.audio, format='m4s',
+                             bitrate=int(response.data.dash.flac['audio']['bandwidth'] / 1000),
+                             http_headers={'Referer': 'https://www.bilibili.com/'})
         audios = sorted(response.data.dash.audio, key=lambda a: a.bandwidth, reverse=True)
         selects: Optional[List[PlayUrlResponse.PlayUrlResponseData.Dash.DashItem]] = None
         match quality:

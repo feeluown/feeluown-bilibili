@@ -273,8 +273,8 @@ class SearchResponse(BaseResponse):
         egg_hit: int
         pageinfo: dict = None
         result: Union[List[Union[SearchResultVideo, SearchResultUser,
-                                 SearchResultLiveRoom, SearchResultMedia,
-                                 SearchResultKetang]], dict] = None
+        SearchResultLiveRoom, SearchResultMedia,
+        SearchResultKetang]], dict] = None
         show_column: int
 
     data: SearchResponseData = None
@@ -400,6 +400,8 @@ class PlayUrlResponse(BaseResponse):
             duration: timedelta  # 视频长度秒
             video: List[DashItem]
             audio: List[DashItem]
+            flac: dict = None
+            dolby: dict = None
 
         quality: VideoQualityNum
         format: str
@@ -623,7 +625,9 @@ class HomeDynamicVideoResponse(BaseResponse):
                             desc: str
                             duration_text: str
                             title: str
+
                         archive: Archive
+
                     major: Major
 
                 class ModuleAuthor(BaseModel):
@@ -633,7 +637,9 @@ class HomeDynamicVideoResponse(BaseResponse):
 
                 module_dynamic: ModuleDynamic
                 module_author: ModuleAuthor
+
             modules: Modules
+
         has_more: bool
         offset: str
         items: List[DynamicVideoItem]

@@ -95,7 +95,8 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
                 return cookie.value
         raise RuntimeError('bili_jct not found')
 
-    def get_uncached(self, url: str, param: Optional[BaseRequest], clazz: Union[Type[BaseResponse], Type[BaseModel], None], **kwargs) \
+    def get_uncached(self, url: str, param: Optional[BaseRequest],
+                     clazz: Union[Type[BaseResponse], Type[BaseModel], None], **kwargs) \
             -> Union[BaseResponse, BaseModel, None]:
         if param is None:
             r = self._session.get(url, timeout=self.TIMEOUT, **kwargs)
@@ -128,7 +129,8 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
         self.maybe_save_cookie()
         return res
 
-    def get(self, url: str, param: Optional[BaseRequest], clazz: Union[Type[BaseResponse], Type[BaseModel], None], **kwargs)\
+    def get(self, url: str, param: Optional[BaseRequest], clazz: Union[Type[BaseResponse], Type[BaseModel], None],
+            **kwargs) \
             -> Union[BaseResponse, BaseModel, None]:
         return self.get_uncached(url, param, clazz, **kwargs)
 
@@ -138,7 +140,7 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
     def get_content_raw(self, url: str) -> bytes:
         return self._session.get(url).content
 
-    def post(self, url: str, param: Optional[BaseRequest], clazz: Type[BaseResponse], is_json=False, **kwargs)\
+    def post(self, url: str, param: Optional[BaseRequest], clazz: Type[BaseResponse], is_json=False, **kwargs) \
             -> BaseResponse:
         if param is None:
             r = self._session.post(url, timeout=self.TIMEOUT, **kwargs)
@@ -167,12 +169,22 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
 
 
 def main():
+    from fuo_bilibili.login import load_user_cookies
     api = BilibiliApi()
-    api.load_cookies()
+    cookiedict = load_user_cookies()
+    api.from_cookiedict(cookiedict)
     # info = api.history_later_videos()
     # info = api.history_add_later_videos(HistoryAddLaterVideosRequest(bvid='BV1RN4y1j7k6'))
-    info = api.video_weekly_detail(WeeklyDetailRequest(number=203))
-    print(info.json())
+    # info = api.video_get_info(VideoInfoRequest(bvid='BV1wnSYBQE4y'))
+    # print(info)
+    data = api.nav_info().data
+    api.set_wbi(data.wbi_img)
+    r = api.video_get_url(PlayUrlRequest(
+        bvid='BV1wnSYBQE4y',
+        cid=34471741344,
+        fnval=VideoFnval.DASH
+    ))
+    print(r.data.dash.flac['audio']['baseUrl'])
     api.close()
 
 

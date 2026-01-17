@@ -69,7 +69,7 @@ class VideoInfoRequest(BaseRequest):
     bvid: str
 
 
-class PlayUrlRequest(BaseRequest):
+class PlayUrlRequest(BaseWbiRequest):
     avid: int = None
     bvid: str
     cid: int

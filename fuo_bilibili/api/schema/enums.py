@@ -139,6 +139,7 @@ class CodecId(Enum):
     AUDIO = 0
     AVC = 7
     HEVC = 12
+    AV1 = 13
 
 
 class VideoCopyright(Enum):
