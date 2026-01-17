@@ -106,11 +106,12 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
                 js = json.loads(param.json(exclude_none=True))
             elif isinstance(param, BaseWbiRequest):
                 if self._wbi is None:
-                    raise RuntimeError('wbi info is empty (not logged in)')
-                img_key = self._wbi.img_url.rsplit('/', 1)[1].split('.')[0]
-                sub_key = self._wbi.sub_url.rsplit('/', 1)[1].split('.')[0]
-                js = json.loads(param.json(exclude_none=True))
-                js = encWbi(js, img_key, sub_key)
+                    logger.debug('wbi info is empty (not logged in)')
+                else:
+                    img_key = self._wbi.img_url.rsplit('/', 1)[1].split('.')[0]
+                    sub_key = self._wbi.sub_url.rsplit('/', 1)[1].split('.')[0]
+                    js = json.loads(param.json(exclude_none=True))
+                    js = encWbi(js, img_key, sub_key)
             else:
                 js = json.loads(param.json(exclude_none=True))
             r = self._session.get(url, timeout=self.TIMEOUT,
