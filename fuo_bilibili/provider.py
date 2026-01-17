@@ -422,8 +422,8 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
         ))
         if Quality.Audio.shq == quality:
             if response.data.dash.flac is not None and response.data.dash.flac['audio'] is not None:
-                return Media(response.data.dash.flac['audio'].base_url, type_=MediaType.audio, format='m4s',
-                             bitrate=int(response.data.dash.flac['audio'].bandwidth / 1000),
+                return Media(response.data.dash.flac['audio']['base_url'], type_=MediaType.audio, format='m4s',
+                             bitrate=int(response.data.dash.flac['audio']['bandwidth'] / 1000),
                              http_headers={'Referer': 'https://www.bilibili.com/'})
         audios = sorted(response.data.dash.audio, key=lambda a: a.bandwidth, reverse=True)
         selects: Optional[List[PlayUrlResponse.PlayUrlResponseData.Dash.DashItem]] = None
