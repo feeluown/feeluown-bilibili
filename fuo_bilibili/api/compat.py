@@ -1,1 +1,1 @@
-from pydantic.v1 import BaseModel, Field, validator  # noqa
+from pydantic import BaseModel, Field, field_validator # noqa
