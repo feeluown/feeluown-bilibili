@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
-from typing import Any, List, Union
+from typing import Any, List, Optional, Union
 
-from fuo_bilibili.api.compat import BaseModel, validator, Field
+from fuo_bilibili.api.compat import BaseModel, Field, field_validator
 
 from fuo_bilibili.api.schema.enums import VideoQualityNum, CodecId, VideoCopyright, VideoState, VideoFrom, SearchType, \
     VipType, MediaType
@@ -238,7 +238,7 @@ class NavInfoResponse(BaseResponse):
         face: str = None
         mid: int = None  # UID
         mobile_verified: bool = None
-        money: int = None  # 硬币数
+        money: float = None  # 硬币数
         moral: int = None  # 节操值
         uname: str = None
         vipDueDate: datetime = None
@@ -250,8 +250,8 @@ class NavInfoResponse(BaseResponse):
         vip_label: VipLabel = None
         wbi_img: Wbi = None
 
+        @field_validator('vipDueDate', mode='before')
         @classmethod
-        @validator('vipDueDate')
         def convert_ms(cls, v):
             return v / 1000
 
@@ -376,8 +376,8 @@ class PlayUrlResponse(BaseResponse):
             url: str  # 视频流url
             backup_url: List[str] = None  # 备用视频流
 
+            @field_validator('length', mode='before')
             @classmethod
-            @validator('length')
             def convert_ms(cls, v):
                 return v / 1000
 
@@ -400,8 +400,8 @@ class PlayUrlResponse(BaseResponse):
             duration: timedelta  # 视频长度秒
             video: List[DashItem]
             audio: List[DashItem]
-            flac: dict = None
-            dolby: dict = None
+            flac: Optional[dict] = None
+            dolby: Optional[dict] = None
 
         quality: VideoQualityNum
         format: str
@@ -412,8 +412,8 @@ class PlayUrlResponse(BaseResponse):
         durl: List[Durl] = None  # vlc/mp4 视频分段
         dash: Dash = None
 
+        @field_validator('timelength', mode='before')
         @classmethod
-        @validator('timelength')
         def convert_ms(cls, v):
             return v / 1000
 
@@ -901,8 +901,8 @@ class MediaGetListResponse(BaseResponse):
             long_title: str
             duration: timedelta
 
+            @field_validator('duration', mode='before')
             @classmethod
-            @validator('duration')
             def convert_ms(cls, v):
                 return v / 1000
 
