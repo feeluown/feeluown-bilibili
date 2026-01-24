@@ -121,9 +121,9 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
             elif isinstance(param, BaseWbiRequest):
                 if self._wbi is None:
                     raise RuntimeError('wbi info is empty (not logged in)')
-                js = handle_base_wbi_request(param)
-            else:
                 js = handle_base_wbi_request_param(param)
+            else:
+                js = handle_base_request_param(param)
             r = self._session.get(url, timeout=self.TIMEOUT,
                                   params=js,
                                   **kwargs)
