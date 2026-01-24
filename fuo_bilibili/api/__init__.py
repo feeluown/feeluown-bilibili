@@ -101,18 +101,29 @@ class BilibiliApi(BaseMixin, VideoMixin, LoginMixin, PlaylistMixin, HistoryMixin
         if param is None:
             r = self._session.get(url, timeout=self.TIMEOUT, **kwargs)
         else:
-            if isinstance(param, BaseCsrfRequest):
-                param.csrf = self._get_csrf()
-                js = json.loads(param.json(exclude_none=True))
-            elif isinstance(param, BaseWbiRequest):
-                if self._wbi is None:
-                    raise RuntimeError('wbi info is empty (not logged in)')
+            def handle_base_request_param(param: BaseRequest):
+                return json.loads(param.json(exclude_none=True))
+
+            def handle_base_wbi_request_param(param: BaseWbiRequest):
                 img_key = self._wbi.img_url.rsplit('/', 1)[1].split('.')[0]
                 sub_key = self._wbi.sub_url.rsplit('/', 1)[1].split('.')[0]
                 js = json.loads(param.json(exclude_none=True))
-                js = encWbi(js, img_key, sub_key)
-            else:
+                return encWbi(js, img_key, sub_key)
+
+            if isinstance(param, BaseCsrfRequest):
+                param.csrf = self._get_csrf()
                 js = json.loads(param.json(exclude_none=True))
+            elif isinstance(param, BaseOptionalWbiRequest):
+                if self._wbi is not None:
+                    js = handle_base_wbi_request_param(param)
+                else:
+                    js = handle_base_request_param(param)
+            elif isinstance(param, BaseWbiRequest):
+                if self._wbi is None:
+                    raise RuntimeError('wbi info is empty (not logged in)')
+                js = handle_base_wbi_request(param)
+            else:
+                js = handle_base_wbi_request_param(param)
             r = self._session.get(url, timeout=self.TIMEOUT,
                                   params=js,
                                   **kwargs)

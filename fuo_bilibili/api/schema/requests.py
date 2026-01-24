@@ -13,6 +13,10 @@ class BaseWbiRequest(BaseRequest):
     pass
 
 
+class BaseOptionalWbiRequest(BaseRequest):
+    pass
+
+
 class GeetestBase(BaseModel):
     token: str
     challenge: str
@@ -69,7 +73,7 @@ class VideoInfoRequest(BaseRequest):
     bvid: str
 
 
-class PlayUrlRequest(BaseWbiRequest):
+class PlayUrlRequest(BaseOptionalWbiRequest):
     avid: int = None
     bvid: str
     cid: int
