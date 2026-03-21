@@ -33,6 +33,7 @@ from fuo_bilibili.model import BSearchModel, BSongModel, BPlaylistModel, BArtist
     BAlbumModel
 from fuo_bilibili.util import json_to_lrc_text
 from fuo_bilibili.login import load_user_cookies
+from .i18n import t
 
 logger = logging.getLogger(__name__)
 SEARCH_TYPE_MAP = {
@@ -680,7 +681,7 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
 
     @property
     def name(self):
-        return __alias__
+        return t('provider-name')
 
     def close(self):
         self._api.close()
