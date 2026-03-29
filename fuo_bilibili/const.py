@@ -1,9 +1,7 @@
-from pathlib import Path
-
 # Define data root directory
 from time import time
-
-FEELUOWN_DIRECTORY = Path.home() / '.FeelUOwn'
+from feeluown.consts import DATA_DIR
+FEELUOWN_DIRECTORY = DATA_DIR
 PLUGIN_DATA_DIRECTORY = FEELUOWN_DIRECTORY / 'fuo_bilibili'
 DANMAKU_DIRECTORY = PLUGIN_DATA_DIRECTORY / 'subtitles'
 
