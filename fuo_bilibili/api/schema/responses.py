@@ -220,7 +220,7 @@ class NavInfoResponse(BaseResponse):
             current_level: int
             current_min: int
             current_exp: int
-            next_exp: str
+            next_exp: str | int
 
         class VipLabel(BaseModel):
             text: str
