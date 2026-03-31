@@ -1,25 +1,28 @@
-name: Build package
-on: push
+name: CI
+on:
+  push:
+  pull_request:
+    types: [ opened, reopened ]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  ci:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "3.10"
+          - "3.14"
+        os: [ ubuntu-22.04, windows-latest, macos-latest ]
+    runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v6
+      - name: Install uv and set the Python version
+        uses: astral-sh/setup-uv@v7
         with:
-          python-version: "3.10"
-      - uses: abatilo/actions-poetry@v2.0.0
-        with:
-          poetry-version: "1.3.2"
-      - name: Clean dist folder
-        run: rm -rf dist
+          python-version: ${{ matrix.python-version }}
+      - name: Lock dependencies
+        shell: bash
+        run: uv lock
       - name: Install dependencies
-        run: poetry install
-      - name: Build package
-        run: poetry build
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: package
-          path: dist/
+        shell: bash
+        run: uv sync --locked --all-extras --dev

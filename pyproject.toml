@@ -1,31 +1,49 @@
-[tool.poetry]
+[project]
 name = "feeluown-bilibili"
 version = "0.5.4"
 description = "Bilibili provider for FeelUOwn player."
-homepage = "https://github.com/BruceZhang1993/feeluown-bilibili"
-authors = ["Bruce Zhang <zttt183525594@gmail.com>"]
-packages = [{ include = "fuo_bilibili" }]
-include = ["fuo_bilibili/assets/icon.svg", "fuo_bilibili/geetest/index.html"]
-license = "GPL-3.0"
+authors = [{ name = "feeluown" }]
+requires-python = ">=3.10,<4"
 readme = "README.md"
+license = "GPL-3.0-or-later"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+dependencies = [
+    "feeluown>=3.8.14",
+    "cachetools",
+    "beautifulsoup4",
+    "pycryptodome",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-feeluown = ">=3.8.14"
-cachetools = "*"
-beautifulsoup4 = "*"
-pycryptodome = "*"
+[project.urls]
+Homepage = "https://github.com/feeluown/feeluown-bilibili"
 
-[tool.poetry.dev-dependencies]
-pytest = "*"
-PyQt6 = "*"
-fuo-dl = "^0.3"
-pre-commit = "*"
-poetry2setup = "*"
+[project.entry-points."fuo.plugins_v1"]
+bilibili = "fuo_bilibili"
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "PyQt6",
+    "fuo-dl>=0.3,<0.4",
+]
+
+[tool.uv]
+
+[tool.uv.build-backend]
+module-name = ["fuo_bilibili"]
+module-root = ""
+source-include = [
+    "fuo_bilibili/assets/icon.svg",
+    "fuo_bilibili/geetest/index.html",
+]
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.plugins."fuo.plugins_v1"]
-"bilibili" = "fuo_bilibili"
+requires = ["uv_build>=0.9.26,<0.10.0"]
+build-backend = "uv_build"
