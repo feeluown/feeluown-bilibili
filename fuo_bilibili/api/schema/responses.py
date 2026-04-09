@@ -220,13 +220,13 @@ class NavInfoResponse(BaseResponse):
             current_level: int
             current_min: int
             current_exp: int
-            next_exp: str
+            next_exp: Union[int, str]
 
         class VipLabel(BaseModel):
             text: str
 
         class Wallet(BaseModel):
-            bcoin_balance: int  # B币
+            bcoin_balance: float  # B币
             coupon_balance: int  # 赠送B币数
 
         class Wbi(BaseModel):
