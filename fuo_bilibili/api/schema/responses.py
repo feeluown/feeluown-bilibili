@@ -226,7 +226,7 @@ class NavInfoResponse(BaseResponse):
             text: str
 
         class Wallet(BaseModel):
-            bcoin_balance: int  # B币
+            bcoin_balance: float  # B币
             coupon_balance: int  # 赠送B币数
 
         class Wbi(BaseModel):
