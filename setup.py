@@ -8,7 +8,7 @@ packages = \
  'fuo_bilibili.geetest']
 
 package_data = \
-{'': ['*'], 'fuo_bilibili': ['assets/*']}
+{'': ['*'], 'fuo_bilibili': ['assets/*', 'i18n/**/*']}
 
 install_requires = \
 ['beautifulsoup4', 'cachetools', 'feeluown>=4.1.8', 'pycryptodome']

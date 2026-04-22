@@ -14,7 +14,7 @@ from feeluown.library import AbstractProvider, ProviderV2, ProviderFlags as Pf, 
 from feeluown.media import Quality, Media, MediaType, VideoAudioManifest
 from feeluown.utils.reader import SequentialReader
 
-from fuo_bilibili import __identifier__, __alias__
+from fuo_bilibili import __identifier__
 from fuo_bilibili.api import BilibiliApi, SearchRequest, SearchType as BilibiliSearchType, VideoInfoRequest, \
     PlayUrlRequest, VideoQualityNum
 from fuo_bilibili.api.schema.enums import VideoFnval, CommentType
@@ -27,7 +27,7 @@ from fuo_bilibili.api.schema.requests import PasswordLoginRequest, SendSmsCodeRe
     UserFollowingRequest, WeeklyDetailRequest
 from fuo_bilibili.api.schema.responses import RequestCaptchaResponse, RequestLoginKeyResponse, PasswordLoginResponse, \
     SendSmsCodeResponse, SmsCodeLoginResponse, NavInfoResponse, PlayUrlResponse
-from fuo_bilibili.const import DANMAKU_DIRECTORY
+from fuo_bilibili.const import DANMAKU_DIRECTORY, domain
 from fuo_bilibili.danmaku2ass import Danmaku2ASS
 from fuo_bilibili.model import BSearchModel, BSongModel, BPlaylistModel, BArtistModel, BCommentModel, BVideoModel, \
     BAlbumModel
@@ -97,7 +97,7 @@ class BilibiliProvider(AbstractProvider, ProviderV2, SupportsSongSimilar, Suppor
     # noinspection PyPep8Naming
     class meta:
         identifier: str = __identifier__
-        name: str = __alias__
+        name: str = t("provider-name", domain=domain)
         flags: dict = {
             ModelType.song: (Pf.model_v2 | Pf.get | Pf.multi_quality | Pf.lyric | Pf.mv | Pf.similar | Pf.hot_comments),
             ModelType.video: (Pf.model_v2 | Pf.multi_quality | Pf.get),
