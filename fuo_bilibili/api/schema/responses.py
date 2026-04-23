@@ -346,7 +346,7 @@ class VideoInfoResponse(BaseResponse):
         pubdate: datetime  # 稿件发布时间
         ctime: datetime  # 用户投稿时间
         desc: str  # 简介
-        desc_v2: List[DescV2] = None  # 新版视频简介
+        desc_v2: Optional[List[DescV2]] = None  # 新版视频简介
         state: VideoState
         duration: timedelta
         forward: int = None
