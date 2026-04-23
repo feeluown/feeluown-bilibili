@@ -6,6 +6,8 @@ FEELUOWN_DIRECTORY = Path(DATA_DIR)
 PLUGIN_DATA_DIRECTORY = FEELUOWN_DIRECTORY / 'fuo_bilibili'
 DANMAKU_DIRECTORY = PLUGIN_DATA_DIRECTORY / 'subtitles'
 
+domain = 'bilibili'
+
 # Cookiejar file
 PLUGIN_API_COOKIEJAR_FILE = PLUGIN_DATA_DIRECTORY / 'bilibili_api.cookie'
 PLUGIN_API_COOKIEDICT_FILE = PLUGIN_DATA_DIRECTORY / 'bilibili_api_cookie.json'

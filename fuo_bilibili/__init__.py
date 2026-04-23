@@ -2,11 +2,10 @@ from typing import Optional, Union
 
 from feeluown.app import App
 
-__alias__ = '哔哩哔哩'
 __feeluown_version__ = '3.5'
 __version__ = '0.0.1'
-__desc__ = __alias__
 __identifier__ = 'bilibili'
+domain = 'bilibili'
 
 from fuo_bilibili.provider import BilibiliProvider
 
@@ -21,6 +20,16 @@ def init_config(config):
 
 # noinspection PyProtectedMember
 def enable(app):
+    try:
+        from pathlib import Path
+        from feeluown.i18n import register_plugin_i18n
+        locales_dir = Path(__file__).parent / "i18n"
+        resource_ids = ["provider.ftl"]
+        register_plugin_i18n(domain=domain, locales_dir=locales_dir,
+                          resource_ids=resource_ids)
+    except ImportError:
+        pass
+
     provider.enable_live_room_as_video = app.config.bilibili.ENABLE_LIVE_ROOM_AS_VIDEO
     app.library.register(provider)
     if app.mode & App.GuiMode:
