@@ -33,8 +33,8 @@ yay -S feeluown-bilibili
 ## Development
 
 ```shell
-poetry install
-poetry run pre-commit install
+uv sync --all-extras --dev
+uv run pre-commit install
 ```
 
 ## License
@@ -44,4 +44,4 @@ poetry run pre-commit install
 ## Special notes
 
 - Proudly use [danmaku2ass](https://github.com/m13253/danmaku2ass) to transform danmaku format
-- Proudly use [poetry](https://python-poetry.org/) as dependency manager tool
+- Proudly use [uv](https://docs.astral.sh/uv/) as dependency manager tool
