@@ -1,11 +1,12 @@
-from pathlib import Path
-
 # Define data root directory
 from time import time
-
-FEELUOWN_DIRECTORY = Path.home() / '.FeelUOwn'
+from pathlib import Path
+from feeluown.consts import DATA_DIR
+FEELUOWN_DIRECTORY = Path(DATA_DIR)
 PLUGIN_DATA_DIRECTORY = FEELUOWN_DIRECTORY / 'fuo_bilibili'
 DANMAKU_DIRECTORY = PLUGIN_DATA_DIRECTORY / 'subtitles'
+
+domain = 'bilibili'
 
 # Cookiejar file
 PLUGIN_API_COOKIEJAR_FILE = PLUGIN_DATA_DIRECTORY / 'bilibili_api.cookie'

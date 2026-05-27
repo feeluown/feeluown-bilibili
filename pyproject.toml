@@ -1,6 +1,6 @@
 [project]
 name = "feeluown-bilibili"
-version = "0.5.4"
+version = "0.5.5"
 description = "Bilibili provider for FeelUOwn player."
 authors = [{ name = "feeluown" }]
 requires-python = ">=3.10,<4"

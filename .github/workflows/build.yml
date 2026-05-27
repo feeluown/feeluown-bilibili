@@ -26,3 +26,6 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: uv sync --locked --all-extras --dev
+      - name: Build package
+        shell: bash
+        run: uv build
