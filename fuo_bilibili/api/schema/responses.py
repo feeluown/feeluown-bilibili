@@ -1015,8 +1015,8 @@ class WeeklyDetailResponse(BaseResponse):
             dynamic: str
             cid: int
             dimension: Dimension
-            short_link: str
-            short_link_v2: str
+            short_link: str = ""
+            short_link_v2: str = ""
             first_frame: str
             pub_location: str
             bvid: str
